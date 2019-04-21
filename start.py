@@ -8,7 +8,9 @@ from tkinter import ttk
 from tkinter import *
 import requests
 import json
+import time
 import urllib3
+import threading
 urllib3.disable_warnings()
 
 username = 'RO'
@@ -17,9 +19,7 @@ hostname = 'https://cisco-cmx.unit.ua/'
 query_mac = 'api/location/v1/history/clients/'
 query_active = 'api/location/v2/clients/'
 query_allhistory = 'api/location/v1/history/clients'
-mac_ad = '00%3A03%3Aac%3A33%3A94%3A0e'
-
-LARGE_FONT= ("Verdana", 12)
+mac_ad = ''
 
 
 class SeaofBTCapp(tk.Tk):
@@ -51,7 +51,6 @@ class SeaofBTCapp(tk.Tk):
         self.show_frame(StartPage)
 
     def show_frame(self, cont):
-
         frame = self.frames[cont]
         frame.tkraise()
 
@@ -80,17 +79,17 @@ class StartPage(tk.Frame):
 
 
 class Map(tk.Frame):
-
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
-        self["bg"] = "#56b8b9"
+        # self["bg"] = "#56b8b9"
+        self["bg"] = "white"
         bottomframe = tk.Frame(self, parent)
         bottomframe["bg"] = '#3c8081'
         bottomframe.pack(side=tk.TOP, fill=tk.X)
         self.add_img2 = tk.PhotoImage(file='map_button.gif')
         self.add_img3 = tk.PhotoImage(file='presense_button.gif')
         self.add_img1 = tk.PhotoImage(file='dashboard_button.gif')
-        button1 = tk.Button(bottomframe, command=lambda: (controller.show_frame(StartPage), controller.show_frame(Map)), bd=0,
+        button1 = tk.Button(bottomframe, command=lambda:(controller.show_frame(StartPage)), bd=0,
                             compound=tk.TOP, image=self.add_img1)
         button1.pack(side=tk.LEFT)
 
@@ -101,25 +100,77 @@ class Map(tk.Frame):
                             compound=tk.TOP, image=self.add_img3)
         button3.pack(side=tk.LEFT)
 
-        img = plt.imread("Perks/e1.png")
-        f = Figure(figsize=(5, 5), dpi=100)
-        a = f.add_subplot(111)
-        a.imshow(img, extent=[0, 1550, 770, 0])
+        self.img = plt.imread("Perks/e1.png")
+        self.session = requests.Session()
+        self.session.verify = False
+        self.sum = 0
+        self.leftpanel = tk.Frame(self, parent)
+        self.leftpanel["bg"] = 'white'
+        self.leftpanel.pack(side=LEFT, fill=tk.Y)
 
-        session = requests.Session()
-        session.verify = False
-        session.auth = (username, password)
-        auth = session.post(hostname)
+        self.ment = StringVar()
 
-        response = session.get(hostname + query_active)
-        data = response.text
-        data = json.loads(data)
+        mEntry = Entry(self.leftpanel, textvariable=self.ment)
+        mEntry.pack(side=TOP)
+        button_s = tk.Button(self.leftpanel, text='Search', bd=0,
+                            compound=tk.TOP)
+        button_s.pack(side=TOP)
+        self.listbox = Listbox(self.leftpanel, width=50, height=20)
+        self.scrollbar = tk.Scrollbar(self.listbox, orient="vertical")
+        # self.scrollbar.config(command=list.yview)
+        self.scrollbar.pack(side="right", fill="y")
+        self.session.auth = (username, password)
+        self.f = Figure(figsize=(5, 5), dpi=100)
+        self.canvas = FigureCanvasTkAgg(self.f, self)
+
+    def parse(self):
+        globals()
+        self.f = Figure(figsize=(5, 5), dpi=100)
+        self.a = self.f.add_subplot(111)
+
+        self.a.imshow(self.img, extent=[0, 1550, 770, 0])
+        self.response = self.session.get(hostname + query_active)
+        data = self.response.json()
+
+        list = Listbox(self.leftpanel, bd=2, bg='#9DBFC0', width=27, yscrollcommand=self.scrollbar.set)
+        self.scrollbar.config(command=list.yview)
+        i = 0
+        sel = str(self.listbox.get(ACTIVE))
+        if self.listbox.curselection():
+            for mac in data:
+                if mac['ipAddress']:
+                    if int(sel.find(mac['macAddress'])) > -1 or int(sel.find(mac['userName']) > -1):
+                        if (int(sel.find(mac['userName']) > -1 and int(sel.find(mac['macAddress'])) == -1 and not mac['userName'])):
+                            continue
+                        self.a.plot(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], 'ro', markersize=8)
+                        self.a.text(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], mac['userName'], fontsize=8)
+                        break
+
         for mac in data:
-            # if mac['ipAddress']:
-                a.plot(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], 'ro', markersize=8)
-                a.text(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], mac['userName'], fontsize=8)
-        canvas = FigureCanvasTkAgg(f, self)
-        canvas._tkcanvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+            if mac['ipAddress']:
+                if not self.listbox.curselection():
+                    self.a.plot(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], 'ro', markersize=8)
+                    self.a.text(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], mac['userName'], fontsize=8)
+                list.insert(END, mac['macAddress'] + ' \t' + mac['userName'])
+                i += mac['mapCoordinate']['x'] + mac['mapCoordinate']['y']
+
+        if i != self.sum or self.listbox.curselection():
+            self.sum = i
+            # if r:
+
+            # ba = self.listbox.get()
+            if (self.listbox.curselection()):
+                list.selection_set(self.listbox.curselection())
+            if list:
+                self.listbox.pack_forget()
+                self.listbox = list
+                if (list.curselection()):
+                    self.listbox.selection_set(list.curselection())
+                self.listbox.pack(side=LEFT, fill=Y)
+            self.canvas._tkcanvas.pack_forget()
+            self.canvas = FigureCanvasTkAgg(self.f, self)
+            self.canvas._tkcanvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+
 
 
 class Presense(tk.Frame):
@@ -149,8 +200,6 @@ class PageThree(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
-        label = tk.Label(self, text="Graph Page!", font=LARGE_FONT)
-        label.pack(pady=10,padx=10)
 
         button1 = ttk.Button(self, text="Back to Home",
                             command=lambda: controller.show_frame(StartPage))
@@ -173,6 +222,12 @@ class PageThree(tk.Frame):
 
 
 app = SeaofBTCapp()
-plt.show(block=False)
+#plt.show(block=False)
 app.geometry("1600x1200+500+100")
+mapi = app.frames[Map]
+mapi.parse()
+while TRUE:
+    mapi.parse()
+    app.update()
+    # app.frames[2].parse(app.frames[2])
 app.mainloop()
