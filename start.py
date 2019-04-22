@@ -101,7 +101,13 @@ class Map(tk.Frame):
         button3.pack(side=tk.LEFT)
 
         self.img = plt.imread("Perks/e1.png")
+
+
         self.session = requests.Session()
+        self.session.auth = (username, password)
+
+
+
         self.session.verify = False
         self.sum = 0
         self.leftpanel = tk.Frame(self, parent)
@@ -109,6 +115,23 @@ class Map(tk.Frame):
         self.leftpanel.pack(side=LEFT, fill=tk.Y)
 
         self.ment = StringVar()
+
+        self.leftpanel_switch = tk.Frame(self.leftpanel)
+        self.leftpanel_switch.pack(side=TOP)
+
+        self.floor_switch = 1
+
+        def set_switch(cont):
+            self.floor_switch = cont
+
+        self.button_s_1 = tk.Button(self.leftpanel_switch, state=NORMAL, command=set_switch(1), text='Floor 1', bd=0,
+                            compound=tk.TOP)
+        self.button_s_1.pack(side=LEFT)
+
+        self.button_s_2 = tk.Button(self.leftpanel_switch, state=NORMAL, command=set_switch(2), text='Floor 2', bd=0,
+                            compound=tk.TOP)
+        self.button_s_2.pack(side=RIGHT)
+
 
         mEntry = Entry(self.leftpanel, textvariable=self.ment)
         mEntry.pack(side=TOP)
@@ -119,8 +142,8 @@ class Map(tk.Frame):
         self.scrollbar = tk.Scrollbar(self.listbox, orient="vertical")
         # self.scrollbar.config(command=list.yview)
         self.scrollbar.pack(side="right", fill="y")
-        self.session.auth = (username, password)
         self.f = Figure(figsize=(5, 5), dpi=100)
+        self.rsum = 0
         self.canvas = FigureCanvasTkAgg(self.f, self)
 
     def parse(self):
@@ -135,7 +158,9 @@ class Map(tk.Frame):
         list = Listbox(self.leftpanel, bd=2, bg='#9DBFC0', width=27, yscrollcommand=self.scrollbar.set)
         self.scrollbar.config(command=list.yview)
         i = 0
-        sel = str(self.listbox.get(ACTIVE))
+        r = 0
+        if self.listbox.curselection():
+            sel = str(self.listbox.get((self.listbox.curselection())))
         if self.listbox.curselection():
             for mac in data:
                 if mac['ipAddress']:
@@ -144,6 +169,7 @@ class Map(tk.Frame):
                             continue
                         self.a.plot(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], 'ro', markersize=8)
                         self.a.text(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], mac['userName'], fontsize=8)
+                        r += mac['mapCoordinate']['x'] + mac['mapCoordinate']['y']
                         break
 
         for mac in data:
@@ -154,7 +180,21 @@ class Map(tk.Frame):
                 list.insert(END, mac['macAddress'] + ' \t' + mac['userName'])
                 i += mac['mapCoordinate']['x'] + mac['mapCoordinate']['y']
 
-        if i != self.sum or self.listbox.curselection():
+        if r != self.rsum and self.listbox.curselection():
+            self.rsum = r
+            if (self.listbox.curselection()):
+                list.selection_set(self.listbox.curselection())
+            if list:
+                self.listbox.pack_forget()
+                self.listbox = list
+                if (list.curselection()):
+                    self.listbox.selection_set(list.curselection())
+                self.listbox.pack(side=LEFT, fill=Y)
+            self.canvas._tkcanvas.pack_forget()
+            self.canvas = FigureCanvasTkAgg(self.f, self)
+            self.canvas._tkcanvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+
+        if i != self.sum :
             self.sum = i
             # if r:
 
