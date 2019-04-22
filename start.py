@@ -55,6 +55,15 @@ class SeaofBTCapp(tk.Tk):
         frame.tkraise()
 
 
+def floor_switch(self, cont):
+    if cont == 1:
+        self.img = plt.imread("Perks/e1.png")
+    else:
+        self.img = plt.imread("Perks/e2.png")
+    self.floor_switch = cont
+    self.listbox.selection_clear(self.listbox.curselection())
+    self.sum = 0
+
 class StartPage(tk.Frame):
 
     def __init__(self, parent, controller):
@@ -79,6 +88,8 @@ class StartPage(tk.Frame):
 
 
 class Map(tk.Frame):
+    def set_switch(self, cont):
+        self.floor_switch = cont
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         # self["bg"] = "#56b8b9"
@@ -121,27 +132,23 @@ class Map(tk.Frame):
 
         self.floor_switch = 1
 
-        def set_switch(cont):
-            self.floor_switch = cont
-
-        self.button_s_1 = tk.Button(self.leftpanel_switch, state=NORMAL, command=set_switch(1), text='Floor 1', bd=0,
+        self.button_s_1 = tk.Button(self.leftpanel_switch, state=NORMAL, command=lambda: floor_switch(self, 1), text='Floor 1', bd=0,
                             compound=tk.TOP)
         self.button_s_1.pack(side=LEFT)
 
-        self.button_s_2 = tk.Button(self.leftpanel_switch, state=NORMAL, command=set_switch(2), text='Floor 2', bd=0,
+        self.button_s_2 = tk.Button(self.leftpanel_switch, state=NORMAL, command=lambda: floor_switch(self, 2), text='Floor 2', bd=0,
                             compound=tk.TOP)
         self.button_s_2.pack(side=RIGHT)
 
+        label = Label(self.leftpanel, text='Type MacAddress or UserName', bd = 0, compound = tk.TOP)
+        label.pack(side=TOP)
 
-        mEntry = Entry(self.leftpanel, textvariable=self.ment)
-        mEntry.pack(side=TOP)
-        button_s = tk.Button(self.leftpanel, text='Search', bd=0,
-                            compound=tk.TOP)
-        button_s.pack(side=TOP)
+        self.mEntry = Entry(self.leftpanel, textvariable=self.ment)
+        self.mEntry.pack(side=TOP, fill=tk.X)
         self.listbox = Listbox(self.leftpanel, width=50, height=20)
         self.scrollbar = tk.Scrollbar(self.listbox, orient="vertical")
-        # self.scrollbar.config(command=list.yview)
         self.scrollbar.pack(side="right", fill="y")
+
         self.f = Figure(figsize=(5, 5), dpi=100)
         self.rsum = 0
         self.canvas = FigureCanvasTkAgg(self.f, self)
@@ -171,15 +178,45 @@ class Map(tk.Frame):
                         self.a.text(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], mac['userName'], fontsize=8)
                         r += mac['mapCoordinate']['x'] + mac['mapCoordinate']['y']
                         break
-
+        typed_text = self.ment.get()
         for mac in data:
             if mac['ipAddress']:
-                if not self.listbox.curselection():
-                    self.a.plot(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], 'ro', markersize=8)
-                    self.a.text(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], mac['userName'], fontsize=8)
-                list.insert(END, mac['macAddress'] + ' \t' + mac['userName'])
-                i += mac['mapCoordinate']['x'] + mac['mapCoordinate']['y']
-
+                if self.floor_switch == 1 and int(mac['mapInfo']['mapHierarchyString'].find('1st_Floor')) > -1:
+                    if self.ment:
+                        if int(mac['macAddress'].find(typed_text)) == 0 or int(mac['userName'].find(typed_text)) == 0:
+                            if not self.listbox.curselection():
+                                self.a.plot(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], 'ro', markersize=8)
+                                self.a.text(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], mac['userName'],
+                                         fontsize=8)
+                            list.insert(END, mac['macAddress'] + ' \t' + mac['userName'])
+                            i += mac['mapCoordinate']['x'] + mac['mapCoordinate']['y']
+                    else:
+                        if not self.listbox.curselection():
+                            self.a.plot(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], 'ro', markersize=8)
+                            self.a.text(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], mac['userName'], fontsize=8)
+                        list.insert(END, mac['macAddress'] + ' \t' + mac['userName'])
+                        i += mac['mapCoordinate']['x'] + mac['mapCoordinate']['y']
+                elif self.floor_switch == 2 and int(mac['mapInfo']['mapHierarchyString'].find('2nd_Floor')) > -1:
+                    if self.ment:
+                        if int(mac['macAddress'].find(typed_text)) == 0 or int(mac['userName'].find(typed_text)) == 0:
+                            if not self.listbox.curselection():
+                                self.a.plot(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], 'ro', markersize=8)
+                                self.a.text(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], mac['userName'],
+                                         fontsize=8)
+                            list.insert(END, mac['macAddress'] + ' \t' + mac['userName'])
+                            i += mac['mapCoordinate']['x'] + mac['mapCoordinate']['y']
+                    else:
+                        if not self.listbox.curselection():
+                            self.a.plot(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], 'ro', markersize=8)
+                            self.a.text(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], mac['userName'], fontsize=8)
+                        list.insert(END, mac['macAddress'] + ' \t' + mac['userName'])
+                        i += mac['mapCoordinate']['x'] + mac['mapCoordinate']['y']
+                    # if not self.listbox.curselection():
+                    #     self.a.plot(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], 'ro', markersize=8)
+                    #     self.a.text(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], mac['userName'], fontsize=8)
+                    # list.insert(END, mac['macAddress'] + ' \t' + mac['userName'])
+                    # i += mac['mapCoordinate']['x'] + mac['mapCoordinate']['y']
+        cur = self.mEntry.index(INSERT)
         if r != self.rsum and self.listbox.curselection():
             self.rsum = r
             if (self.listbox.curselection()):
@@ -190,6 +227,7 @@ class Map(tk.Frame):
                 if (list.curselection()):
                     self.listbox.selection_set(list.curselection())
                 self.listbox.pack(side=LEFT, fill=Y)
+
             self.canvas._tkcanvas.pack_forget()
             self.canvas = FigureCanvasTkAgg(self.f, self)
             self.canvas._tkcanvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
@@ -210,6 +248,7 @@ class Map(tk.Frame):
             self.canvas._tkcanvas.pack_forget()
             self.canvas = FigureCanvasTkAgg(self.f, self)
             self.canvas._tkcanvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+        self.mEntry.icursor(cur)
 
 
 
