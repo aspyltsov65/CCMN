@@ -1,8 +1,8 @@
-import matplotlib
-matplotlib.use("TkAgg")
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
-from matplotlib.figure import Figure
-import matplotlib.pyplot as plt
+# import matplotlib
+# matplotlib.use("TkAgg")
+# from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+# from matplotlib.figure import Figure
+# import matplotlib.pyplot as plt
 import tkinter as tk
 from tkinter import ttk
 from tkinter import *
@@ -13,13 +13,13 @@ import urllib3
 import threading
 urllib3.disable_warnings()
 
-username = 'RO'
-password = 'just4reading'
-hostname = 'https://cisco-cmx.unit.ua/'
-query_mac = 'api/location/v1/history/clients/'
-query_active = 'api/location/v2/clients/'
-query_allhistory = 'api/location/v1/history/clients'
-mac_ad = ''
+# username = 'RO'
+# password = 'just4reading'
+# hostname = 'https://cisco-cmx.unit.ua/'
+# query_mac = 'api/location/v1/history/clients/'
+# query_active = 'api/location/v2/clients/'
+# query_allhistory = 'api/location/v1/history/clients'
+# mac_ad = ''
 
 
 class SeaofBTCapp(tk.Tk):
@@ -113,13 +113,11 @@ class Map(tk.Frame):
 
         self.img = plt.imread("Perks/e1.png")
 
-
+        # ######################################################login to API
         self.session = requests.Session()
         self.session.auth = (username, password)
-
-
-
         self.session.verify = False
+
         self.sum = 0
         self.leftpanel = tk.Frame(self, parent)
         self.leftpanel["bg"] = 'white'
@@ -162,6 +160,8 @@ class Map(tk.Frame):
         self.response = self.session.get(hostname + query_active)
         data = self.response.json()
 
+        # API_process.login()
+        # data = API_process.api_data
         list = Listbox(self.leftpanel, bd=2, bg='#9DBFC0', width=27, yscrollcommand=self.scrollbar.set)
         self.scrollbar.config(command=list.yview)
         i = 0
@@ -288,8 +288,6 @@ class PageThree(tk.Frame):
         a = f.add_subplot(111)
         a.plot([1,2,3,4,5,6,7,8],[5,6,1,3,8,9,3,5])
 
-
-
         canvas = FigureCanvasTkAgg(f, self)
         #canvas.show()
         canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
@@ -299,14 +297,35 @@ class PageThree(tk.Frame):
         canvas._tkcanvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
 
+class API_process():
 
-app = SeaofBTCapp()
-#plt.show(block=False)
-app.geometry("1600x1200+500+100")
-mapi = app.frames[Map]
-mapi.parse()
-while TRUE:
-    mapi.parse()
-    app.update()
-    # app.frames[2].parse(app.frames[2])
-app.mainloop()
+    username = 'RO'
+    password = 'just4reading'
+    hostname = 'https://cisco-cmx.unit.ua/'
+    query_mac = 'api/location/v1/history/clients/'
+    query_active = 'api/location/v2/clients/'
+    query_all_history = 'api/location/v1/history/clients'
+    mac_ad = ''
+
+    @classmethod
+    def login(cls):
+        session = requests.Session()
+        session.auth = (cls.username, cls.password)
+        session.verify = False
+        response = session.get(cls.hostname + cls.query_active)
+        return response.json()
+
+
+if __name__ == "__main__":
+
+    print(API_process.login())
+    # app = SeaofBTCapp()
+    #
+    # app.geometry("1600x1200+500+100")
+    # mapi = app.frames[Map]
+    # mapi.parse()
+    # while True:
+    #     mapi.parse()
+    #     app.update()
+    #     # app.frames[2].parse(app.frames[2])
+    # app.mainloop()
