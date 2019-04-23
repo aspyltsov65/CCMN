@@ -28,7 +28,7 @@ class SeaofBTCapp(tk.Tk):
 
         tk.Tk.__init__(self, *args, **kwargs)
 
-        #tk.Tk.iconbitmap(self, default="clienticon.ico")
+
         self.iconbitmap('@python.xbm')
         tk.Tk.wm_title(self, "CCMN")
 
@@ -92,7 +92,6 @@ class Map(tk.Frame):
         self.floor_switch = cont
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
-        # self["bg"] = "#56b8b9"
         self["bg"] = "white"
         bottomframe = tk.Frame(self, parent)
         bottomframe["bg"] = '#3c8081'
@@ -116,10 +115,9 @@ class Map(tk.Frame):
 
         self.session = requests.Session()
         self.session.auth = (username, password)
-
-
-
         self.session.verify = False
+
+
         self.sum = 0
         self.leftpanel = tk.Frame(self, parent)
         self.leftpanel["bg"] = 'white'
@@ -140,7 +138,7 @@ class Map(tk.Frame):
                             compound=tk.TOP)
         self.button_s_2.pack(side=RIGHT)
 
-        label = Label(self.leftpanel, text='Type MacAddress or UserName', bd = 0, compound = tk.TOP)
+        label = Label(self.leftpanel, text='Type MacAddress or UserName', bd=0, compound=tk.TOP)
         label.pack(side=TOP)
 
         self.mEntry = Entry(self.leftpanel, textvariable=self.ment)
@@ -149,6 +147,8 @@ class Map(tk.Frame):
         self.scrollbar = tk.Scrollbar(self.listbox, orient="vertical")
         self.scrollbar.pack(side="right", fill="y")
 
+
+        self.info_label = Label(self)
         self.f = Figure(figsize=(5, 5), dpi=100)
         self.rsum = 0
         self.canvas = FigureCanvasTkAgg(self.f, self)
@@ -157,17 +157,24 @@ class Map(tk.Frame):
         globals()
         self.f = Figure(figsize=(5, 5), dpi=100)
         self.a = self.f.add_subplot(111)
-
         self.a.imshow(self.img, extent=[0, 1550, 770, 0])
+
+
         self.response = self.session.get(hostname + query_active)
         data = self.response.json()
 
-        list = Listbox(self.leftpanel, bd=2, bg='#9DBFC0', width=27, yscrollcommand=self.scrollbar.set)
+        list = Listbox(self.leftpanel, bd=2, bg='#9DBFC0', width=27, yscrollcommand=self.scrollbar.set,
+                       font="Helvetica 16 bold italic", fg = "#3c8081")
         self.scrollbar.config(command=list.yview)
         i = 0
         r = 0
+
+        info_label = Label(self, justify=LEFT, font="Arial 16", fg="#bc5151")
+
         if self.listbox.curselection():
             sel = str(self.listbox.get((self.listbox.curselection())))
+
+
         if self.listbox.curselection():
             for mac in data:
                 if mac['ipAddress']:
@@ -177,8 +184,21 @@ class Map(tk.Frame):
                         self.a.plot(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], 'ro', markersize=8)
                         self.a.text(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], mac['userName'], fontsize=8)
                         r += mac['mapCoordinate']['x'] + mac['mapCoordinate']['y']
+                        info_label['text'] = "\n\n\n\nMacAddress:\t\t " + mac['macAddress'] + "\nFloor:\t\t\t "
+                        if int(mac['mapInfo']['mapHierarchyString'].find('1st_Floor')) > -1:
+                            info_label['text'] += "1st_Floor"
+                        else:
+                            info_label['text'] += "2nd_Floor"
+                        info_label['text'] += "\nRSSI:\t\t\t " + \
+                                             str(mac['statistics']['maxDetectedRssi']['rssi']) + "\nSSID:\t\t\t " + \
+                                             mac['ssId'] + "\nDevice type:\t\t " + str(mac['manufacturer']) +\
+                                             "\nUserName:\t\t " + mac['userName'] + "\nFirst Located Time:\t " +\
+                                             mac['statistics']['firstLocatedTime'] + "\nLast Located Time:\t\t " +\
+                                             mac['statistics']['lastLocatedTime']
                         break
         typed_text = self.ment.get()
+
+
         for mac in data:
             if mac['ipAddress']:
                 if self.floor_switch == 1 and int(mac['mapInfo']['mapHierarchyString'].find('1st_Floor')) > -1:
@@ -211,11 +231,8 @@ class Map(tk.Frame):
                             self.a.text(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], mac['userName'], fontsize=8)
                         list.insert(END, mac['macAddress'] + ' \t' + mac['userName'])
                         i += mac['mapCoordinate']['x'] + mac['mapCoordinate']['y']
-                    # if not self.listbox.curselection():
-                    #     self.a.plot(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], 'ro', markersize=8)
-                    #     self.a.text(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], mac['userName'], fontsize=8)
-                    # list.insert(END, mac['macAddress'] + ' \t' + mac['userName'])
-                    # i += mac['mapCoordinate']['x'] + mac['mapCoordinate']['y']
+
+
         cur = self.mEntry.index(INSERT)
         if r != self.rsum and self.listbox.curselection():
             self.rsum = r
@@ -228,15 +245,15 @@ class Map(tk.Frame):
                     self.listbox.selection_set(list.curselection())
                 self.listbox.pack(side=LEFT, fill=Y)
 
+            self.info_label.pack_forget()
+            self.info_label = info_label
+            self.info_label.pack(anchor=NW)
             self.canvas._tkcanvas.pack_forget()
             self.canvas = FigureCanvasTkAgg(self.f, self)
             self.canvas._tkcanvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
         if i != self.sum :
             self.sum = i
-            # if r:
-
-            # ba = self.listbox.get()
             if (self.listbox.curselection()):
                 list.selection_set(self.listbox.curselection())
             if list:
@@ -248,6 +265,8 @@ class Map(tk.Frame):
             self.canvas._tkcanvas.pack_forget()
             self.canvas = FigureCanvasTkAgg(self.f, self)
             self.canvas._tkcanvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+            if not self.listbox.curselection():
+                self.info_label.pack_forget()
         self.mEntry.icursor(cur)
 
 
@@ -301,12 +320,10 @@ class PageThree(tk.Frame):
 
 
 app = SeaofBTCapp()
-#plt.show(block=False)
 app.geometry("1600x1200+500+100")
 mapi = app.frames[Map]
 mapi.parse()
 while TRUE:
     mapi.parse()
     app.update()
-    # app.frames[2].parse(app.frames[2])
 app.mainloop()
