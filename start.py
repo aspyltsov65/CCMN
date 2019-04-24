@@ -1,8 +1,8 @@
-# import matplotlib
-# matplotlib.use("TkAgg")
-# from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
-# from matplotlib.figure import Figure
-# import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use("TkAgg")
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
 import tkinter as tk
 from tkinter import ttk
 from tkinter import *
@@ -13,47 +13,6 @@ import urllib3
 import threading
 urllib3.disable_warnings()
 
-# username = 'RO'
-# password = 'just4reading'
-# hostname = 'https://cisco-cmx.unit.ua/'
-# query_mac = 'api/location/v1/history/clients/'
-# query_active = 'api/location/v2/clients/'
-# query_allhistory = 'api/location/v1/history/clients'
-# mac_ad = ''
-
-
-class SeaofBTCapp(tk.Tk):
-
-    def __init__(self, *args, **kwargs):
-
-        tk.Tk.__init__(self, *args, **kwargs)
-
-        #tk.Tk.iconbitmap(self, default="clienticon.ico")
-        self.iconbitmap('@python.xbm')
-        tk.Tk.wm_title(self, "CCMN")
-
-
-        container = tk.Frame(self)
-        container.pack(side="top", fill="both", expand = True)
-        container.grid_rowconfigure(0, weight=1)
-        container.grid_columnconfigure(0, weight=1)
-
-        self.frames = {}
-
-        for F in (StartPage, Map, Presense):
-
-            frame = F(container, self)
-
-            self.frames[F] = frame
-
-            frame.grid(row=0, column=0, sticky="nsew")
-
-        self.show_frame(StartPage)
-
-    def show_frame(self, cont):
-        frame = self.frames[cont]
-        frame.tkraise()
-
 
 def floor_switch(self, cont):
     if cont == 1:
@@ -61,62 +20,67 @@ def floor_switch(self, cont):
     else:
         self.img = plt.imread("Perks/e2.png")
     self.floor_switch = cont
-    self.listbox.selection_clear(self.listbox.curselection())
+    if (self.listbox.curselection()):
+        self.listbox.selection_clear(self.listbox.curselection())
     self.sum = 0
+
+
+class SeaofBTCapp(tk.Tk):
+
+    frames = {}
+
+    def __init__(self):
+        super().__init__()
+        self.img1 = tk.PhotoImage(file='dashboard_button.gif')
+        self.img2 = tk.PhotoImage(file='map_button.gif')
+        self.img3 = tk.PhotoImage(file='presense_button.gif')
+
+    def create_tabs(self):
+        top_tabs = tk.Frame(self)
+        top_tabs.pack(side="top", fill="both", expand=True)
+        top_tabs.grid_rowconfigure(0, weight=1)
+        top_tabs.grid_columnconfigure(0, weight=1)
+
+        for F in (StartPage, Map, Presense):
+            frame = F(top_tabs, self)
+            frame.create_button_frame(self, top_tabs)
+            self.frames[F] = frame
+            frame.grid(row=0, column=0, sticky="nsew")
+        self.show_frame(StartPage)
+
+    def show_frame(self, tab):
+        frame = self.frames[tab]
+        frame.tkraise()
+
 
 class StartPage(tk.Frame):
 
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self,parent)
-        self["bg"] = "#56b8b9"
-        bottomframe = tk.Frame(self,parent)
-        bottomframe["bg"] = '#3c8081'
-        bottomframe.pack(side=tk.TOP, fill=tk.X)
-        self.add_img2 = tk.PhotoImage(file='map_button.gif')
-        self.add_img3 = tk.PhotoImage(file='presense_button.gif')
-        self.add_img1 = tk.PhotoImage(file='dashboard_button.gif')
-        button1 = tk.Button(bottomframe, bd=0, state=DISABLED,compound=tk.TOP, image=self.add_img1)
+    def __init__(self, container, *args, **kwargs):
+        tk.Frame.__init__(self, container)
+
+    def create_button_frame(self, window, container):
+
+        button_frame = tk.Frame(container)
+        button_frame['bg'] = '#3c8081'
+        button_frame.pack(side=tk.TOP, fill=tk.X)
+
+        button1 = tk.Button(button_frame, state=DISABLED,
+                            compound=tk.TOP, image=window.img1)
         button1.pack(side=tk.LEFT)
 
-        button2 = tk.Button(bottomframe, command=lambda: controller.show_frame(Map), bd=0,
-                            compound=tk.TOP, image=self.add_img2)
+        button2 = tk.Button(button_frame, command=lambda: window.show_frame(StartPage),
+                            compound=tk.TOP, image=window.img2)
         button2.pack(side=tk.LEFT)
 
-        button3 = tk.Button(bottomframe, command=lambda: controller.show_frame(Presense), bd=0,
-                            compound=tk.TOP, image=self.add_img3)
+        button3 = tk.Button(button_frame, command=lambda: window.show_frame(Presense), compound=tk.TOP, image=window.img3)
         button3.pack(side=tk.LEFT)
 
 
 class Map(tk.Frame):
-    def set_switch(self, cont):
-        self.floor_switch = cont
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
-        # self["bg"] = "#56b8b9"
-        self["bg"] = "white"
-        bottomframe = tk.Frame(self, parent)
-        bottomframe["bg"] = '#3c8081'
-        bottomframe.pack(side=tk.TOP, fill=tk.X)
-        self.add_img2 = tk.PhotoImage(file='map_button.gif')
-        self.add_img3 = tk.PhotoImage(file='presense_button.gif')
-        self.add_img1 = tk.PhotoImage(file='dashboard_button.gif')
-        button1 = tk.Button(bottomframe, command=lambda:(controller.show_frame(StartPage)), bd=0,
-                            compound=tk.TOP, image=self.add_img1)
-        button1.pack(side=tk.LEFT)
-
-        button2 = tk.Button(bottomframe, bd=0, state=DISABLED, compound=tk.TOP, image=self.add_img2)
-        button2.pack(side=tk.LEFT)
-
-        button3 = tk.Button(bottomframe, command=lambda: controller.show_frame(Presense), bd=0,
-                            compound=tk.TOP, image=self.add_img3)
-        button3.pack(side=tk.LEFT)
+    def __init__(self, parent, controller, *args, **kwargs):
+        tk.Frame.__init__(self, controller)
 
         self.img = plt.imread("Perks/e1.png")
-
-        # ######################################################login to API
-        self.session = requests.Session()
-        self.session.auth = (username, password)
-        self.session.verify = False
 
         self.sum = 0
         self.leftpanel = tk.Frame(self, parent)
@@ -151,17 +115,35 @@ class Map(tk.Frame):
         self.rsum = 0
         self.canvas = FigureCanvasTkAgg(self.f, self)
 
+    def set_switch(self, cont):
+        self.floor_switch = cont
+
+    def create_button_frame(self, window, container):
+
+        button_frame = tk.Frame(container)
+        button_frame['bg'] = '#3c8081'
+        button_frame.pack(side=tk.TOP, fill=tk.X)
+
+        button1 = tk.Button(button_frame, command=lambda: window.show_frame(StartPage),
+                            compound=tk.TOP, image=window.img1)
+        button1.pack(side=tk.LEFT)
+
+        button2 = tk.Button(button_frame,  state=DISABLED, compound=tk.TOP, image=window.img2)
+        button2.pack(side=tk.LEFT)
+
+        button3 = tk.Button(button_frame, command= lambda: (window.show_frame(Presense)), compound=tk.TOP, image=window.img3)
+        button3.pack(side=tk.LEFT)
+
     def parse(self):
         globals()
         self.f = Figure(figsize=(5, 5), dpi=100)
         self.a = self.f.add_subplot(111)
+        # print("~~~~~~~{}".format(type(self.a)))
 
         self.a.imshow(self.img, extent=[0, 1550, 770, 0])
-        self.response = self.session.get(hostname + query_active)
-        data = self.response.json()
 
-        # API_process.login()
-        # data = API_process.api_data
+        data = ApiProcess.login()
+
         list = Listbox(self.leftpanel, bd=2, bg='#9DBFC0', width=27, yscrollcommand=self.scrollbar.set)
         self.scrollbar.config(command=list.yview)
         i = 0
@@ -211,11 +193,6 @@ class Map(tk.Frame):
                             self.a.text(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], mac['userName'], fontsize=8)
                         list.insert(END, mac['macAddress'] + ' \t' + mac['userName'])
                         i += mac['mapCoordinate']['x'] + mac['mapCoordinate']['y']
-                    # if not self.listbox.curselection():
-                    #     self.a.plot(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], 'ro', markersize=8)
-                    #     self.a.text(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], mac['userName'], fontsize=8)
-                    # list.insert(END, mac['macAddress'] + ' \t' + mac['userName'])
-                    # i += mac['mapCoordinate']['x'] + mac['mapCoordinate']['y']
         cur = self.mEntry.index(INSERT)
         if r != self.rsum and self.listbox.curselection():
             self.rsum = r
@@ -251,53 +228,32 @@ class Map(tk.Frame):
         self.mEntry.icursor(cur)
 
 
-
 class Presense(tk.Frame):
 
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
-        self["bg"] = "#56b8b9"
-        bottomframe = tk.Frame(self, parent)
-        bottomframe["bg"] = '#3c8081'
-        bottomframe.pack(side=tk.TOP, fill=tk.X)
-        self.add_img2 = tk.PhotoImage(file='map_button.gif')
-        self.add_img3 = tk.PhotoImage(file='presense_button.gif')
-        self.add_img1 = tk.PhotoImage(file='dashboard_button.gif')
-        button1 = tk.Button(bottomframe, command=lambda: controller.show_frame(StartPage), bd=0,
-                            compound=tk.TOP, image=self.add_img1)
+    bg = "#56b8b9"
+
+    def __init__(self, container, *args, **kwargs):
+        tk.Frame.__init__(self, container)
+
+    def create_button_frame(self, window, container):
+
+        button_frame = tk.Frame(container)
+        button_frame['bg'] = '#3c8081'
+        button_frame.pack(side=tk.TOP, fill=tk.X)
+
+        button1 = tk.Button(button_frame, command=lambda: window.show_frame(StartPage),
+                            compound=tk.TOP, image=window.img1)
         button1.pack(side=tk.LEFT)
 
-        button2 = tk.Button(bottomframe, command=lambda: controller.show_frame(Map), bd=0,
-                            compound=tk.TOP, image=self.add_img2)
+        button2 = tk.Button(button_frame, command=lambda: window.show_frame(StartPage),
+                            compound=tk.TOP, image=window.img2)
         button2.pack(side=tk.LEFT)
 
-        button3 = tk.Button(bottomframe, bd=0,state=DISABLED, compound=tk.TOP, image=self.add_img3)
+        button3 = tk.Button(button_frame, state=DISABLED, compound=tk.TOP, image=window.img3)
         button3.pack(side=tk.LEFT)
 
 
-class PageThree(tk.Frame):
-
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
-
-        button1 = ttk.Button(self, text="Back to Home",
-                            command=lambda: controller.show_frame(StartPage))
-        button1.pack()
-
-        f = Figure(figsize=(5,5), dpi=100)
-        a = f.add_subplot(111)
-        a.plot([1,2,3,4,5,6,7,8],[5,6,1,3,8,9,3,5])
-
-        canvas = FigureCanvasTkAgg(f, self)
-        #canvas.show()
-        canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
-
-        toolbar = NavigationToolbar2Tk(canvas, self)
-        toolbar.update()
-        canvas._tkcanvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
-
-
-class API_process():
+class ApiProcess():
 
     username = 'RO'
     password = 'just4reading'
@@ -309,6 +265,7 @@ class API_process():
 
     @classmethod
     def login(cls):
+        """Login to cisco-cmx.unit.ua, create request, get data from API"""
         session = requests.Session()
         session.auth = (cls.username, cls.password)
         session.verify = False
@@ -316,16 +273,28 @@ class API_process():
         return response.json()
 
 
+def close_window():
+    global running
+    running = False
+    app.destroy()
+
+
 if __name__ == "__main__":
 
-    print(API_process.login())
-    # app = SeaofBTCapp()
-    #
-    # app.geometry("1600x1200+500+100")
-    # mapi = app.frames[Map]
-    # mapi.parse()
-    # while True:
-    #     mapi.parse()
-    #     app.update()
-    #     # app.frames[2].parse(app.frames[2])
-    # app.mainloop()
+    running = TRUE
+
+    app = SeaofBTCapp()
+    app.create_tabs()
+    app.show_frame(StartPage)
+
+    app.geometry("1600x1200+500+100")
+    app.title("CCMN")
+    app.protocol("WM_DELETE_WINDOW", close_window)
+    app.bind('<Escape>', lambda e: close_window())
+
+    mapi = app.frames[Map]
+    mapi.parse()
+
+    while running:
+        mapi.parse()
+        app.update()
