@@ -5,6 +5,7 @@ from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 import tkinter as tk
 from tkinter import *
+from tkinter import messagebox
 import requests
 import urllib3
 
@@ -66,8 +67,6 @@ class StartPage(tk.Frame):
 
 
 class Map(tk.Frame):
-    def set_switch(self, cont):
-        self.floor_switch = cont
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self["bg"] = "white"
@@ -106,7 +105,7 @@ class Map(tk.Frame):
         self.button_s_2 = tk.Button(self.leftpanel_switch, state=NORMAL, command=lambda:
         floor_switch(self, 2), text='Floor 2', bd=0, compound=tk.TOP)
         self.button_s_3 = tk.Button(self.leftpanel_switch, state=NORMAL, command=lambda:
-        refreash(self), text='Refresh', bd=0, compound=tk.TOP)
+        refresh(self), text='Refresh', bd=0, compound=tk.TOP)
         self.button_s_3.pack(side=RIGHT)
         self.button_s_2.pack(side=RIGHT)
 
@@ -115,11 +114,13 @@ class Map(tk.Frame):
 
         self.mEntry = Entry(self.leftpanel, textvariable=self.ment)
         self.mEntry.pack(side=TOP, fill=tk.X)
-        self.listbox = Listbox(self.leftpanel, width=50, height=20)
+        self.scrollbar = Scrollbar(self.leftpanel, orient=VERTICAL)
+        self.listbox = Listbox(self.leftpanel, width=50, height=20, yscrollcommand=self.scrollbar.set)
         self.scrollbar = tk.Scrollbar(self.listbox, orient="vertical")
         self.scrollbar.pack(side="right", fill="y")
-
-
+        self.scrollbar.config(command=self.listbox.yview)
+        self.scrollbar.pack(side=RIGHT, fill=Y)
+        self.connected = ""
         self.info_label = Label(self)
         self.f = Figure(figsize=(5, 5), dpi=100)
         self.canvas = FigureCanvasTkAgg(self.f, self)
@@ -133,7 +134,6 @@ class Map(tk.Frame):
         data = self.session.get(hostname + query_active).json()
         list = Listbox(self.leftpanel, bd=2, bg='#9DBFC0', width=27,
             font="Helvetica 16 bold italic", fg = "#3c8081")
-        i = 0
         info_label = Label(self, justify=LEFT, font="Arial 16", fg="#bc5151")
         typed_text = self.ment.get()
 
@@ -143,21 +143,26 @@ class Map(tk.Frame):
                 self.a.plot(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], 'ro', markersize=8)
                 self.a.text(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], mac['userName'], fontsize=8)
                 list.insert(END, mac['macAddress'] + ' \t' + mac['userName'])
-                i += mac['mapCoordinate']['x'] + mac['mapCoordinate']['y']
                 label_paste(info_label, mac)
             elif str(self.floor_switch) in mac['mapInfo']['mapHierarchyString'] and mac['ipAddress']:
                 if self.ment and (typed_text in mac['macAddress'] or typed_text in mac['userName']):
                     list.insert(END, mac['macAddress'] + ' \t' + mac['userName'])
-                    i += mac['mapCoordinate']['x'] + mac['mapCoordinate']['y']
                 elif not self.ment:
                     list.insert(END, mac['macAddress'] + ' \t' + mac['userName'])
-                    i += mac['mapCoordinate']['x'] + mac['mapCoordinate']['y']
                 if not self.listbox.curselection():
                     self.a.plot(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], 'ro', markersize=8)
                     self.a.text(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], mac['userName'], fontsize=8)
+            if not mac['macAddress'] in self.connected and mac['ipAddress']:
+                self.connected += mac['macAddress']
+                if " " in self.connected and '1' in mac['mapInfo']['mapHierarchyString']:
+                    messagebox.showinfo("Notification", mac['macAddress'] + " " + mac['userName'] + " now is on the first floor")
+                elif " " in self.connected:
+                    messagebox.showinfo("Notification", mac['macAddress'] + " " + mac['userName'] + "now is on the second floor")
+        self.connected += " "
 
         if (self.listbox.curselection()):
             list.selection_set(self.listbox.curselection())
+
         if list:
             self.listbox.pack_forget()
             self.listbox = list
@@ -222,9 +227,10 @@ def floor_switch(self, cont):
     if self.listbox.curselection():
         self.listbox.selection_clear(self.listbox.curselection())
     self.sum = 0
+    refresh(self)
 
 
-def refreash(self):
+def refresh(self):
     self.cur_selection = None
 
 
