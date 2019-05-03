@@ -9,7 +9,7 @@ bot = telebot.TeleBot(TOKEN)
 
 e1 = plt.imread('Perks/e1.png')
 e2 = plt.imread('Perks/e2.png')
-tmp = 'tmp.png'
+tmp = 'Perks/tmp.png'
 
 session = requests.Session()
 session.auth = ('RO', 'just4reading')

@@ -24,14 +24,14 @@ module.exports = function (controller) {
                             let v = Object.values(response.data[i]);
                             if (v[12] && (v[0] == answer || v[13] == answer))
                             {
-                                var img = '../../Perks/e1.png';
+                                var img = '../Perks/e1.png';
                                 let image_sw = Object.values(v[1]);
                                 switch (image_sw[0]){
                                     case 'System Campus>UNIT.Factory>2nd_Floor>Coverage Area_2nd_Floor':
-                                        img = '../../Perks/e2.png';
+                                        img = '../Perks/e2.png';
                                         break;
                                     case 'System Campus>UNIT.Factory>3rd_Floor>Coverage Area-3rd_Floor':
-                                        img = '../../Perks/e3.png';
+                                        img = '../Perks/e3.png';
                                         break;
                                 }
                                 loadImage(img).then((image) => {

@@ -29,9 +29,9 @@ class SeaofBTCapp(tk.Tk):
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
 
-        self.add_img1 = tk.PhotoImage(file='dashboard_button.gif')
-        self.add_img2 = tk.PhotoImage(file='map_button.gif')
-        self.add_img3 = tk.PhotoImage(file='presense_button.gif')
+        self.add_img1 = tk.PhotoImage(file='Perks/dashboard_button.gif')
+        self.add_img2 = tk.PhotoImage(file='Perks/map_button.gif')
+        self.add_img3 = tk.PhotoImage(file='Perks/presense_button.gif')
 
         self.frames = {}
         for F in (StartPage, Map, Presense):
@@ -173,7 +173,6 @@ class Map(tk.Frame):
         onfloor_total['text'] = "On floor: " + str(onfloor) + "/ total: " + str(total)
         self.onfloor_total.pack_forget()
         self.onfloor_total = onfloor_total
-        # self.onfloor_total.pack(side=tk.BOTTOM)
         self.onfloor_total.pack(side=tk.TOP)
         if self.listbox.curselection():
             if str(self.listbox.get(self.listbox.curselection())) in str(list.get(self.listbox.curselection())):
