@@ -1,4 +1,5 @@
 import matplotlib
+import numpy as np
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
@@ -8,7 +9,10 @@ from tkinter import *
 from tkinter import messagebox
 import requests
 import urllib3
+import calendar_code
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 urllib3.disable_warnings()
 username = 'RO'
@@ -202,7 +206,7 @@ class Presense(tk.Frame):
         tk.Frame.__init__(self, parent)
         self["bg"] = "#56b8b9"
         bottomframe = tk.Frame(self, parent)
-        bottomframe["bg"] = '#3c8081'
+        bottomframe["bg"] = 'white'
         bottomframe.pack(side=tk.TOP, fill=tk.X)
         button1 = tk.Button(bottomframe, command=lambda:
         controller.show_frame(StartPage), bd=0, compound=tk.TOP, image=controller.add_img1)
@@ -215,6 +219,67 @@ class Presense(tk.Frame):
         button3 = tk.Button(bottomframe, bd=0,state=DISABLED, compound=tk.TOP, image=controller.add_img3)
         button3.pack(side=tk.LEFT)
 
+        self.session = requests.Session()
+        self.session.auth = (username, 'Passw0rd')
+        self.session.verify = False
+
+        self.datato = {'date': "2019-5-4"}
+        self.datafrom = {'date': "2019-5-2"}
+        self.parent = parent
+        self.to_btn = tk.Button(bottomframe, text='ᐁ', command=lambda: self.popup(1), bg='white')
+        self.to_btn.pack(side=tk.RIGHT, fill=tk.Y)
+
+        self.to_date = Label(bottomframe, text=self.datato['date'], bd=2, bg='white')
+        self.to_date.pack(side=tk.RIGHT, fill=tk.Y)
+
+        self.from_btn = tk.Button(bottomframe, text='ᐁ', command=lambda: self.popup(2), bg='white')
+        self.from_btn.pack(side=tk.RIGHT, fill=tk.Y)
+
+        self.from_date = Label(bottomframe, text=self.datafrom['date'], bd=2, bg='white')
+        self.from_date.pack(side=tk.RIGHT, fill=tk.Y)
+        fig, ax = plt.subplots(figsize=(6, 3), subplot_kw=dict(aspect="equal"))
+        self.canvas = FigureCanvasTkAgg(fig, self)
+        self.print()
+
+    def popup(self, sw):
+        child = tk.Toplevel()
+        child.geometry("255x310+1845+170")
+        if sw == 1:
+            cal = calendar_code.calen(child, self.datato, self, sw)
+        else:
+            cal = calendar_code.calen(child, self.datafrom, self, sw)
+
+    def print(self):
+        data = self.session.get("http://cisco-presence.unit.ua/api/presence/v1/dwell/count?siteId=1513804707441&startDate=" + self.from_date['text'] + "&endDate=" + self.to_date['text']).json()
+
+        fig, ax = plt.subplots(figsize=(8, 6), subplot_kw=dict(aspect="equal"))
+
+        recipe = [str(data['FIVE_TO_THIRTY_MINUTES']) + " 5-30minutes",
+                  str(data['THIRTY_TO_SIXTY_MINUTES']) + " 30-60minutes",
+                  str(data['ONE_TO_FIVE_HOURS']) + " 1-5hours",
+                  str(data['FIVE_TO_EIGHT_HOURS']) + " 5-8hours",
+                  str(data['EIGHT_PLUS_HOURS']) + " 8+hours"]
+
+        dat = [float(x.split()[0]) for x in recipe]
+        ingredients = [x.split()[-1] for x in recipe]
+
+        def func(pct, allvals):
+            absolute = int(pct / 100. * np.sum(allvals))
+            return "{:d}".format(absolute)
+
+        wedges, texts, autotexts = ax.pie(dat, autopct=lambda pct: func(pct, dat),
+                                          textprops=dict(color="w"))
+
+        ax.legend(wedges, ingredients,
+                  loc="center left",
+                  bbox_to_anchor=(1, 0, 0.5, 1))
+
+        plt.setp(autotexts, size=8, weight="bold")
+
+        ax.set_title("Presence: Connected Visitors Dwell Time")
+        self.canvas._tkcanvas.pack_forget()
+        self.canvas = FigureCanvasTkAgg(fig, self)
+        self.canvas._tkcanvas.pack(anchor=SW)
 
 def close_window():
   global running
