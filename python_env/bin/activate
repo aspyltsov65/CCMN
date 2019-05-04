@@ -37,7 +37,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="/Users/apyltsov/Projects/CCMN/python_env"
+VIRTUAL_ENV="/Users/apyltsov/Projects/osloboda_fork/os/python_env"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"

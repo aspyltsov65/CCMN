@@ -1,276 +1,279 @@
 import matplotlib
 matplotlib.use("TkAgg")
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
+import numpy as np
 import tkinter as tk
-from tkinter import ttk
 from tkinter import *
-import requests
-import json
-import time
-import urllib3
-import threading
-urllib3.disable_warnings()
+from tkinter import messagebox
 
+import calendar_code
 
-def floor_switch(self, cont):
-    if cont == 1:
-        self.img = plt.imread("Perks/e1.png")
-    else:
-        self.img = plt.imread("Perks/e2.png")
-    self.floor_switch = cont
-    if (self.listbox.curselection()):
-        self.listbox.selection_clear(self.listbox.curselection())
-    self.sum = 0
+import ApiProcess
 
 
 class SeaofBTCapp(tk.Tk):
 
-    frames = {}
+    def __init__(self, *args, **kwargs):
+        tk.Tk.__init__(self, *args, **kwargs)
+        self.iconbitmap('@python.xbm')
+        tk.Tk.wm_title(self, "CCMN")
 
-    def __init__(self):
-        super().__init__()
-        self.img1 = tk.PhotoImage(file='dashboard_button.gif')
-        self.img2 = tk.PhotoImage(file='map_button.gif')
-        self.img3 = tk.PhotoImage(file='presense_button.gif')
+        container = tk.Frame(self)
+        container.pack(side="top", fill="both", expand = True)
+        container.grid_rowconfigure(0, weight=1)
+        container.grid_columnconfigure(0, weight=1)
 
-    def create_tabs(self):
-        top_tabs = tk.Frame(self)
-        top_tabs.pack(side="top", fill="both", expand=True)
-        top_tabs.grid_rowconfigure(0, weight=1)
-        top_tabs.grid_columnconfigure(0, weight=1)
+        self.add_img1 = tk.PhotoImage(file='Perks/dashboard_button.gif')
+        self.add_img2 = tk.PhotoImage(file='Perks/map_button.gif')
+        self.add_img3 = tk.PhotoImage(file='Perks/presense_button.gif')
 
+        self.frames = {}
         for F in (StartPage, Map, Presense):
-            frame = F(top_tabs, self)
-            frame.create_button_frame(self, top_tabs)
+            frame = F(container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
         self.show_frame(StartPage)
+        globals()
 
-    def show_frame(self, tab):
-        frame = self.frames[tab]
+    def show_frame(self, cont):
+        frame = self.frames[cont]
         frame.tkraise()
 
 
 class StartPage(tk.Frame):
 
-    def __init__(self, container, *args, **kwargs):
-        tk.Frame.__init__(self, container)
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self,parent)
+        self["bg"] = "#56b8b9"
+        bottomframe = tk.Frame(self,parent)
+        bottomframe["bg"] = '#3c8081'
+        bottomframe.pack(side=tk.TOP, fill=tk.X)
 
-    def create_button_frame(self, window, container):
-
-        button_frame = tk.Frame(container)
-        button_frame['bg'] = '#3c8081'
-        button_frame.pack(side=tk.TOP, fill=tk.X)
-
-        button1 = tk.Button(button_frame, state=DISABLED,
-                            compound=tk.TOP, image=window.img1)
+        button1 = tk.Button(bottomframe, bd=0, state=DISABLED, compound=tk.TOP, image=controller.add_img1)
         button1.pack(side=tk.LEFT)
 
-        button2 = tk.Button(button_frame, command=lambda: window.show_frame(StartPage),
-                            compound=tk.TOP, image=window.img2)
+        button2 = tk.Button(bottomframe, command=lambda: controller.show_frame(Map),
+                            bd=0, compound=tk.TOP, image=controller.add_img2)
         button2.pack(side=tk.LEFT)
 
-        button3 = tk.Button(button_frame, command=lambda: window.show_frame(Presense), compound=tk.TOP, image=window.img3)
+        button3 = tk.Button(bottomframe, command=lambda: controller.show_frame(Presense),
+                            bd=0, compound=tk.TOP, image=controller.add_img3)
         button3.pack(side=tk.LEFT)
 
 
 class Map(tk.Frame):
-    def __init__(self, parent, controller, *args, **kwargs):
-        tk.Frame.__init__(self, controller)
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self["bg"] = "white"
+        bottomframe = tk.Frame(self, parent)
+        bottomframe["bg"] = '#3c8081'
+        bottomframe.pack(side=tk.TOP, fill=tk.X)
+
+        button1 = tk.Button(bottomframe, command=lambda: controller.show_frame(StartPage),
+                            bd=0, compound=tk.TOP, image=controller.add_img1)
+        button1.pack(side=tk.LEFT)
+
+        button2 = tk.Button(bottomframe, bd=0, state=DISABLED, compound=tk.TOP, image=controller.add_img2)
+        button2.pack(side=tk.LEFT)
+
+        button3 = tk.Button(bottomframe, command=lambda: controller.show_frame(Presense),
+                            bd=0, compound=tk.TOP, image=controller.add_img3)
+        button3.pack(side=tk.LEFT)
 
         self.img = plt.imread("Perks/e1.png")
-
-        self.sum = 0
         self.leftpanel = tk.Frame(self, parent)
         self.leftpanel["bg"] = 'white'
         self.leftpanel.pack(side=LEFT, fill=tk.Y)
-
         self.ment = StringVar()
-
         self.leftpanel_switch = tk.Frame(self.leftpanel)
         self.leftpanel_switch.pack(side=TOP)
 
         self.floor_switch = 1
+        self.button_r = tk.Button(self.leftpanel, state=NORMAL,
+                                  command=lambda: refresh(self), text='Refresh', bd=0)
+        self.button_r.pack(side=TOP, fill=tk.X)
 
-        self.button_s_1 = tk.Button(self.leftpanel_switch, state=NORMAL, command=lambda: floor_switch(self, 1), text='Floor 1', bd=0,
-                            compound=tk.TOP)
+        self.button_s_1 = tk.Button(self.leftpanel_switch, state=NORMAL,
+                                    command=lambda: floor_switch(self, 1), text='Floor 1', bd=0, compound=tk.TOP)
         self.button_s_1.pack(side=LEFT)
 
-        self.button_s_2 = tk.Button(self.leftpanel_switch, state=NORMAL, command=lambda: floor_switch(self, 2), text='Floor 2', bd=0,
-                            compound=tk.TOP)
+        self.button_s_2 = tk.Button(self.leftpanel_switch, state=NORMAL,
+                                    command=lambda: floor_switch(self, 2), text='Floor 2', bd=0, compound=tk.TOP)
         self.button_s_2.pack(side=RIGHT)
 
-        label = Label(self.leftpanel, text='Type MacAddress or UserName', bd = 0, compound = tk.TOP)
+        self.button_s_3 = tk.Button(self.leftpanel_switch, state=NORMAL,
+                                    command=lambda: floor_switch(self, 3), text='Floor 3', bd=0, compound=tk.TOP)
+        self.button_s_3.pack(side=RIGHT)
+
+        label = Label(self.leftpanel, text='Type MacAddress or UserName', bd=0, compound=tk.TOP)
         label.pack(side=TOP)
 
         self.mEntry = Entry(self.leftpanel, textvariable=self.ment)
         self.mEntry.pack(side=TOP, fill=tk.X)
-        self.listbox = Listbox(self.leftpanel, width=50, height=20)
+        self.scrollbar = Scrollbar(self.leftpanel, orient=VERTICAL)
+        self.listbox = Listbox(self.leftpanel, width=50, height=20, yscrollcommand=self.scrollbar.set)
         self.scrollbar = tk.Scrollbar(self.listbox, orient="vertical")
         self.scrollbar.pack(side="right", fill="y")
-
+        self.scrollbar.config(command=self.listbox.yview)
+        self.scrollbar.pack(side=RIGHT, fill=Y)
+        self.connected = ""
+        self.info_label = Label(self)
         self.f = Figure(figsize=(5, 5), dpi=100)
-        self.rsum = 0
         self.canvas = FigureCanvasTkAgg(self.f, self)
-
-    def set_switch(self, cont):
-        self.floor_switch = cont
-
-    def create_button_frame(self, window, container):
-
-        button_frame = tk.Frame(container)
-        button_frame['bg'] = '#3c8081'
-        button_frame.pack(side=tk.TOP, fill=tk.X)
-
-        button1 = tk.Button(button_frame, command=lambda: window.show_frame(StartPage),
-                            compound=tk.TOP, image=window.img1)
-        button1.pack(side=tk.LEFT)
-
-        button2 = tk.Button(button_frame,  state=DISABLED, compound=tk.TOP, image=window.img2)
-        button2.pack(side=tk.LEFT)
-
-        button3 = tk.Button(button_frame, command= lambda: (window.show_frame(Presense)), compound=tk.TOP, image=window.img3)
-        button3.pack(side=tk.LEFT)
+        self.cur_selection = None
+        self.onfloor_total = Label(self, justify=LEFT, font="Arial 16", fg="#bc5151",anchor=S)
 
     def parse(self):
         globals()
         self.f = Figure(figsize=(5, 5), dpi=100)
-        self.a = self.f.add_subplot(111)
-        # print("~~~~~~~{}".format(type(self.a)))
-
+        self.a = self.f.add_subplot(111, title="")
         self.a.imshow(self.img, extent=[0, 1550, 770, 0])
+
+        list = Listbox(self.leftpanel, bd=2, bg='#9DBFC0', width=27,
+                       font="Helvetica 16 bold italic", fg = "#3c8081")
+        info_label = Label(self, justify=LEFT, font="Arial 16", fg="#bc5151",anchor=SW)
+        typed_text = self.ment.get()
+        onfloor_total = Label(self.leftpanel, justify=LEFT, font="Arial 16", fg="#3c8081",anchor=S)
+        onfloor = 0
+        total = 0
 
         data = ApiProcess.login()
 
-        list = Listbox(self.leftpanel, bd=2, bg='#9DBFC0', width=27, yscrollcommand=self.scrollbar.set)
-        self.scrollbar.config(command=list.yview)
-        i = 0
-        r = 0
-        if self.listbox.curselection():
-            sel = str(self.listbox.get((self.listbox.curselection())))
-        if self.listbox.curselection():
-            for mac in data:
-                if mac['ipAddress']:
-                    if int(sel.find(mac['macAddress'])) > -1 or int(sel.find(mac['userName']) > -1):
-                        if (int(sel.find(mac['userName']) > -1 and int(sel.find(mac['macAddress'])) == -1 and not mac['userName'])):
-                            continue
-                        self.a.plot(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], 'ro', markersize=8)
-                        self.a.text(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], mac['userName'], fontsize=8)
-                        r += mac['mapCoordinate']['x'] + mac['mapCoordinate']['y']
-                        break
-        typed_text = self.ment.get()
         for mac in data:
+            if self.listbox.curselection() and (mac['macAddress'] in str(self.listbox.get((self.listbox.curselection())))
+                        or (mac['userName'] in str(self.listbox.get(self.listbox.curselection())) and mac['userName'])):
+                self.a.plot(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], 'ro', markersize=8)
+                self.a.text(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], mac['userName'], fontsize=8)
+                list.insert(END, mac['macAddress'] + ' \t' + mac['userName'])
+                label_paste(info_label, mac)
+            elif str(self.floor_switch) in mac['mapInfo']['mapHierarchyString'] and mac['ipAddress']:
+                if self.ment and (typed_text in mac['macAddress'] or typed_text in mac['userName']):
+                    list.insert(END, mac['macAddress'] + ' \t' + mac['userName'])
+                elif not self.ment:
+                    list.insert(END, mac['macAddress'] + ' \t' + mac['userName'])
+                if not self.listbox.curselection():
+                    self.a.plot(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], 'ro', markersize=8)
+                    self.a.text(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], mac['userName'], fontsize=8)
+                onfloor += 1
             if mac['ipAddress']:
-                if self.floor_switch == 1 and int(mac['mapInfo']['mapHierarchyString'].find('1st_Floor')) > -1:
-                    if self.ment:
-                        if int(mac['macAddress'].find(typed_text)) == 0 or int(mac['userName'].find(typed_text)) == 0:
-                            if not self.listbox.curselection():
-                                self.a.plot(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], 'ro', markersize=8)
-                                self.a.text(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], mac['userName'],
-                                         fontsize=8)
-                            list.insert(END, mac['macAddress'] + ' \t' + mac['userName'])
-                            i += mac['mapCoordinate']['x'] + mac['mapCoordinate']['y']
-                    else:
-                        if not self.listbox.curselection():
-                            self.a.plot(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], 'ro', markersize=8)
-                            self.a.text(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], mac['userName'], fontsize=8)
-                        list.insert(END, mac['macAddress'] + ' \t' + mac['userName'])
-                        i += mac['mapCoordinate']['x'] + mac['mapCoordinate']['y']
-                elif self.floor_switch == 2 and int(mac['mapInfo']['mapHierarchyString'].find('2nd_Floor')) > -1:
-                    if self.ment:
-                        if int(mac['macAddress'].find(typed_text)) == 0 or int(mac['userName'].find(typed_text)) == 0:
-                            if not self.listbox.curselection():
-                                self.a.plot(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], 'ro', markersize=8)
-                                self.a.text(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], mac['userName'],
-                                         fontsize=8)
-                            list.insert(END, mac['macAddress'] + ' \t' + mac['userName'])
-                            i += mac['mapCoordinate']['x'] + mac['mapCoordinate']['y']
-                    else:
-                        if not self.listbox.curselection():
-                            self.a.plot(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], 'ro', markersize=8)
-                            self.a.text(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], mac['userName'], fontsize=8)
-                        list.insert(END, mac['macAddress'] + ' \t' + mac['userName'])
-                        i += mac['mapCoordinate']['x'] + mac['mapCoordinate']['y']
-        cur = self.mEntry.index(INSERT)
-        if r != self.rsum and self.listbox.curselection():
-            self.rsum = r
-            if (self.listbox.curselection()):
+                total += 1
+            if not mac['macAddress'] in self.connected and mac['ipAddress']:
+                self.connected += mac['macAddress']
+                if  " " in self.connected and '1' in mac['mapInfo']['mapHierarchyString']:
+                    messagebox.showinfo("Notification", mac['macAddress'] + " " + mac['userName'] + " now is on the first floor")
+                elif " " in self.connected and '2' in mac['mapInfo']['mapHierarchyString']:
+                    messagebox.showinfo("Notification", mac['macAddress'] + " " + mac['userName'] + " now is on the second floor")
+                elif " " in self.connected and '3' in mac['mapInfo']['mapHierarchyString']:
+                    messagebox.showinfo("Notification", mac['macAddress'] + " " + mac['userName'] + " now is on the third floor")
+        self.connected += " "
+        onfloor_total['text'] = "On floor: " + str(onfloor) + "/ total: " + str(total)
+        self.onfloor_total.pack_forget()
+        self.onfloor_total = onfloor_total
+        self.onfloor_total.pack(side=tk.TOP)
+        if self.listbox.curselection():
+            if str(self.listbox.get(self.listbox.curselection())) in str(list.get(self.listbox.curselection())):
                 list.selection_set(self.listbox.curselection())
-            if list:
-                self.listbox.pack_forget()
-                self.listbox = list
-                if (list.curselection()):
-                    self.listbox.selection_set(list.curselection())
-                self.listbox.pack(side=LEFT, fill=Y)
-
+        if list:
+            self.listbox.pack_forget()
+            self.listbox = list
+            if list.curselection():
+                self.listbox.selection_set(list.curselection())
+            self.listbox.pack(side=LEFT, fill=Y)
+        if self.cur_selection != self.listbox.curselection():
+            self.cur_selection = self.listbox.curselection()
             self.canvas._tkcanvas.pack_forget()
             self.canvas = FigureCanvasTkAgg(self.f, self)
             self.canvas._tkcanvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
-        if i != self.sum :
-            self.sum = i
-            # if r:
-
-            # ba = self.listbox.get()
-            if (self.listbox.curselection()):
-                list.selection_set(self.listbox.curselection())
-            if list:
-                self.listbox.pack_forget()
-                self.listbox = list
-                if (list.curselection()):
-                    self.listbox.selection_set(list.curselection())
-                self.listbox.pack(side=LEFT, fill=Y)
-            self.canvas._tkcanvas.pack_forget()
-            self.canvas = FigureCanvasTkAgg(self.f, self)
-            self.canvas._tkcanvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
-        self.mEntry.icursor(cur)
+        if not self.listbox.curselection():
+            self.info_label.pack_forget()
+        else:
+            self.info_label.pack_forget()
+            self.info_label = info_label
+            self.info_label.pack(anchor=SW)
 
 
 class Presense(tk.Frame):
 
-    bg = "#56b8b9"
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self["bg"] = "#56b8b9"
+        bottomframe = tk.Frame(self, parent)
+        bottomframe["bg"] = 'white'
+        bottomframe.pack(side=tk.TOP, fill=tk.X)
 
-    def __init__(self, container, *args, **kwargs):
-        tk.Frame.__init__(self, container)
-
-    def create_button_frame(self, window, container):
-
-        button_frame = tk.Frame(container)
-        button_frame['bg'] = '#3c8081'
-        button_frame.pack(side=tk.TOP, fill=tk.X)
-
-        button1 = tk.Button(button_frame, command=lambda: window.show_frame(StartPage),
-                            compound=tk.TOP, image=window.img1)
+        button1 = tk.Button(bottomframe, command=lambda: controller.show_frame(StartPage),
+                            bd=0, compound=tk.TOP, image=controller.add_img1)
         button1.pack(side=tk.LEFT)
 
-        button2 = tk.Button(button_frame, command=lambda: window.show_frame(StartPage),
-                            compound=tk.TOP, image=window.img2)
+        button2 = tk.Button(bottomframe, command=lambda: controller.show_frame(Map),
+                            bd=0, compound=tk.TOP, image=controller.add_img2)
         button2.pack(side=tk.LEFT)
 
-        button3 = tk.Button(button_frame, state=DISABLED, compound=tk.TOP, image=window.img3)
+        button3 = tk.Button(bottomframe, bd=0,state=DISABLED, compound=tk.TOP, image=controller.add_img3)
         button3.pack(side=tk.LEFT)
 
+        self.datato = {'date': "2019-5-4"}
+        self.datafrom = {'date': "2019-5-2"}
+        self.parent = parent
 
-class ApiProcess():
+        self.to_btn = tk.Button(bottomframe, text='ᐁ', command=lambda: self.popup(1), bg='white')
+        self.to_btn.pack(side=tk.RIGHT, fill=tk.Y)
 
-    username = 'RO'
-    password = 'just4reading'
-    hostname = 'https://cisco-cmx.unit.ua/'
-    query_mac = 'api/location/v1/history/clients/'
-    query_active = 'api/location/v2/clients/'
-    query_all_history = 'api/location/v1/history/clients'
-    mac_ad = ''
+        self.to_date = Label(bottomframe, text=self.datato['date'], bd=2, bg='white')
+        self.to_date.pack(side=tk.RIGHT, fill=tk.Y)
 
-    @classmethod
-    def login(cls):
-        """Login to cisco-cmx.unit.ua, create request, get data from API"""
-        session = requests.Session()
-        session.auth = (cls.username, cls.password)
-        session.verify = False
-        response = session.get(cls.hostname + cls.query_active)
-        return response.json()
+        self.from_btn = tk.Button(bottomframe, text='ᐁ', command=lambda: self.popup(2), bg='white')
+        self.from_btn.pack(side=tk.RIGHT, fill=tk.Y)
+
+        self.from_date = Label(bottomframe, text=self.datafrom['date'], bd=2, bg='white')
+        self.from_date.pack(side=tk.RIGHT, fill=tk.Y)
+
+        fig, ax = plt.subplots(figsize=(6, 3), subplot_kw=dict(aspect="equal"))
+        self.canvas = FigureCanvasTkAgg(fig, self)
+        self.print()
+
+    def popup(self, sw):
+        child = tk.Toplevel()
+        child.geometry("255x310+1845+170")
+        if sw == 1:
+            cal = calendar_code.calen(child, self.datato, self, sw)
+        else:
+            cal = calendar_code.calen(child, self.datafrom, self, sw)
+
+    def print(self):
+
+        data = ApiProcess.get_presence(self.from_date['text'], self.to_date['text'])
+        fig, ax = plt.subplots(figsize=(8, 6), subplot_kw=dict(aspect="equal"))
+
+        recipe = [str(data['FIVE_TO_THIRTY_MINUTES']) + " 5-30minutes",
+                  str(data['THIRTY_TO_SIXTY_MINUTES']) + " 30-60minutes",
+                  str(data['ONE_TO_FIVE_HOURS']) + " 1-5hours",
+                  str(data['FIVE_TO_EIGHT_HOURS']) + " 5-8hours",
+                  str(data['EIGHT_PLUS_HOURS']) + " 8+hours"]
+
+        dat = [float(x.split()[0]) for x in recipe]
+        ingredients = [x.split()[-1] for x in recipe]
+
+        def func(pct, allvals):
+            absolute = int(pct / 100. * np.sum(allvals))
+            return "{:d}".format(absolute)
+
+        wedges, texts, autotexts = ax.pie(dat, autopct=lambda pct: func(pct, dat),
+                                          textprops=dict(color="w"))
+
+        ax.legend(wedges, ingredients,
+                  loc="center left",
+                  bbox_to_anchor=(1, 0, 0.5, 1))
+
+        plt.setp(autotexts, size=8, weight="bold")
+
+        ax.set_title("Presence: Connected Visitors Dwell Time")
+        self.canvas._tkcanvas.pack_forget()
+        self.canvas = FigureCanvasTkAgg(fig, self)
+        self.canvas._tkcanvas.pack(anchor=SW)
 
 
 def close_window():
@@ -279,16 +282,46 @@ def close_window():
     app.destroy()
 
 
+def label_paste(info_label, mac):
+    info_label['text'] = "\tMacAddress:\t\t " + mac['macAddress'] + "\n\tFloor:\t\t\t "
+    if '1st_Floor' in mac['mapInfo']['mapHierarchyString']:
+        info_label['text'] += "First floor"
+    elif '2nd_Floor' in mac['mapInfo']['mapHierarchyString']:
+        info_label['text'] += "Second floor"
+    else:
+        info_label['text'] += "Third floor"
+    info_label['text'] += "\n\tRSSI:\t\t\t " + \
+        str(mac['statistics']['maxDetectedRssi']['rssi']) + "\n\tSSID:\t\t\t " + \
+        mac['ssId'] + "\n\tDevice type:\t\t " + str(mac['manufacturer']) + \
+        "\n\tUserName:\t\t " + mac['userName'] + "\n\tFirst Located Time:\t " + \
+        mac['statistics']['firstLocatedTime'] + "\n\tLast Located Time:\t\t " + \
+        mac['statistics']['lastLocatedTime'] + "\n\n\n"
+
+
+def floor_switch(self, cont):
+    if cont == 1:
+        self.img = plt.imread("Perks/e1.png")
+    elif cont == 2:
+        self.img = plt.imread("Perks/e2.png")
+    else:
+        self.img = plt.imread("Perks/e3.png")
+    self.floor_switch = cont
+    if self.listbox.curselection():
+        self.listbox.selection_clear(self.listbox.curselection())
+    self.sum = 0
+    refresh(self)
+
+
+def refresh(self):
+    self.cur_selection = None
+
+
 if __name__ == "__main__":
 
-    running = TRUE
+    running = True
 
     app = SeaofBTCapp()
-    app.create_tabs()
-    app.show_frame(StartPage)
-
     app.geometry("1600x1200+500+100")
-    app.title("CCMN")
     app.protocol("WM_DELETE_WINDOW", close_window)
     app.bind('<Escape>', lambda e: close_window())
 
