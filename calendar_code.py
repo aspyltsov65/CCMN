@@ -78,8 +78,9 @@ class calen:
         for w, week in enumerate(self.cal.monthdayscalendar(y, m), 2):
             for d, day in enumerate(week):
                 if day:
-                    b = tk.Button(self.parent, width=1, text=day,
-                                  command=lambda day=day:self.selection(day, calendar.day_name[(day - 1) % 7]))
+
+                    b = tk.Button(self.parent, width=1, text=day, command=lambda day=day:self.selection(day, calendar.day_name[(day - 1) % 7]))
+
                     self.wid.append(b)
                     b.grid(row=w, column=d)
 
@@ -100,4 +101,6 @@ class calen:
         else:
             self.page.from_date['text'] = str(self.values['year_selected']) + '-' + str(
                 self.values['month_selected']) + '-' + str(self.values['day_selected'])
+
         self.page.print()
+

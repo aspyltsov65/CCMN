@@ -8,9 +8,14 @@ import tkinter as tk
 from tkinter import *
 from tkinter import messagebox
 
+import Analytics
 import calendar_code
-
 import ApiProcess
+
+import calendar
+import PIL.ImageTk
+import PIL.Image
+from datetime import datetime, timedelta, date
 
 
 class SeaofBTCapp(tk.Tk):
@@ -45,9 +50,9 @@ class SeaofBTCapp(tk.Tk):
 class StartPage(tk.Frame):
 
     def __init__(self, parent, controller):
-        tk.Frame.__init__(self,parent)
-        self["bg"] = "#56b8b9"
-        bottomframe = tk.Frame(self,parent)
+        tk.Frame.__init__(self, parent)
+        self["bg"] = "#DCDCDC"
+        bottomframe = tk.Frame(self, parent)
         bottomframe["bg"] = '#3c8081'
         bottomframe.pack(side=tk.TOP, fill=tk.X)
 
@@ -66,9 +71,9 @@ class StartPage(tk.Frame):
 class Map(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
-        self["bg"] = "white"
+        self["bg"] = "#DCDCDC"
         bottomframe = tk.Frame(self, parent)
-        bottomframe["bg"] = '#3c8081'
+        bottomframe["bg"] = '#DCDCDC'
         bottomframe.pack(side=tk.TOP, fill=tk.X)
 
         button1 = tk.Button(bottomframe, command=lambda: controller.show_frame(StartPage),
@@ -82,7 +87,6 @@ class Map(tk.Frame):
                             bd=0, compound=tk.TOP, image=controller.add_img3)
         button3.pack(side=tk.LEFT)
 
-        self.img = plt.imread("Perks/e1.png")
         self.leftpanel = tk.Frame(self, parent)
         self.leftpanel["bg"] = 'white'
         self.leftpanel.pack(side=LEFT, fill=tk.Y)
@@ -99,13 +103,13 @@ class Map(tk.Frame):
                                     command=lambda: floor_switch(self, 1), text='Floor 1', bd=0, compound=tk.TOP)
         self.button_s_1.pack(side=LEFT)
 
-        self.button_s_2 = tk.Button(self.leftpanel_switch, state=NORMAL,
-                                    command=lambda: floor_switch(self, 2), text='Floor 2', bd=0, compound=tk.TOP)
-        self.button_s_2.pack(side=RIGHT)
-
         self.button_s_3 = tk.Button(self.leftpanel_switch, state=NORMAL,
                                     command=lambda: floor_switch(self, 3), text='Floor 3', bd=0, compound=tk.TOP)
         self.button_s_3.pack(side=RIGHT)
+
+        self.button_s_2 = tk.Button(self.leftpanel_switch, state=NORMAL,
+                                    command=lambda: floor_switch(self, 2), text='Floor 2', bd=0, compound=tk.TOP)
+        self.button_s_2.pack(side=RIGHT)
 
         label = Label(self.leftpanel, text='Type MacAddress or UserName', bd=0, compound=tk.TOP)
         label.pack(side=TOP)
@@ -129,21 +133,27 @@ class Map(tk.Frame):
         globals()
         self.f = Figure(figsize=(5, 5), dpi=100)
         self.a = self.f.add_subplot(111, title="")
+        self.img = plt.imread("Perks/e1.png")
+
+        self.f.gca().axes.get_yaxis().set_visible(False)
+        self.f.gca().axes.get_xaxis().set_visible(False)
         self.a.imshow(self.img, extent=[0, 1550, 770, 0])
 
         list = Listbox(self.leftpanel, bd=2, bg='#9DBFC0', width=27,
-                       font="Helvetica 16 bold italic", fg = "#3c8081")
-        info_label = Label(self, justify=LEFT, font="Arial 16", fg="#bc5151",anchor=SW)
+                       font="Helvetica 16 bold italic", fg="#3c8081")
+        info_label = Label(self, justify=LEFT, font="Arial 16", fg="#bc5151", anchor=SW)
         typed_text = self.ment.get()
-        onfloor_total = Label(self.leftpanel, justify=LEFT, font="Arial 16", fg="#3c8081",anchor=S)
+        onfloor_total = Label(self.leftpanel, justify=LEFT, font="Arial 16", fg="#3c8081", anchor=S)
         onfloor = 0
         total = 0
 
-        data = ApiProcess.login()
+        data = ApiProcess.get_active()
 
         for mac in data:
-            if self.listbox.curselection() and (mac['macAddress'] in str(self.listbox.get((self.listbox.curselection())))
-                        or (mac['userName'] in str(self.listbox.get(self.listbox.curselection())) and mac['userName'])):
+            if self.listbox.curselection() and (
+                    mac['macAddress'] in str(self.listbox.get((self.listbox.curselection())))
+                    or (mac['userName'] in str(self.listbox.get(self.listbox.curselection())) and mac['userName'])):
+
                 self.a.plot(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], 'ro', markersize=8)
                 self.a.text(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], mac['userName'], fontsize=8)
                 list.insert(END, mac['macAddress'] + ' \t' + mac['userName'])
@@ -161,12 +171,16 @@ class Map(tk.Frame):
                 total += 1
             if not mac['macAddress'] in self.connected and mac['ipAddress']:
                 self.connected += mac['macAddress']
-                if  " " in self.connected and '1' in mac['mapInfo']['mapHierarchyString']:
-                    messagebox.showinfo("Notification", mac['macAddress'] + " " + mac['userName'] + " now is on the first floor")
+
+                if " " in self.connected and '1' in mac['mapInfo']['mapHierarchyString']:
+                    messagebox.showinfo("Notification",
+                                        mac['macAddress'] + " " + mac['userName'] + " now is on the first floor")
                 elif " " in self.connected and '2' in mac['mapInfo']['mapHierarchyString']:
-                    messagebox.showinfo("Notification", mac['macAddress'] + " " + mac['userName'] + " now is on the second floor")
+                    messagebox.showinfo("Notification",
+                                        mac['macAddress'] + " " + mac['userName'] + " now is on the second floor")
                 elif " " in self.connected and '3' in mac['mapInfo']['mapHierarchyString']:
-                    messagebox.showinfo("Notification", mac['macAddress'] + " " + mac['userName'] + " now is on the third floor")
+                    messagebox.showinfo("Notification",
+                                        mac['macAddress'] + " " + mac['userName'] + " now is on the third floor")
         self.connected += " "
         onfloor_total['text'] = "On floor: " + str(onfloor) + "/ total: " + str(total)
         self.onfloor_total.pack_forget()
@@ -199,11 +213,10 @@ class Presense(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
-        self["bg"] = "#56b8b9"
+        self["bg"] = "#DCDCDC"
         bottomframe = tk.Frame(self, parent)
         bottomframe["bg"] = 'white'
         bottomframe.pack(side=tk.TOP, fill=tk.X)
-
         button1 = tk.Button(bottomframe, command=lambda: controller.show_frame(StartPage),
                             bd=0, compound=tk.TOP, image=controller.add_img1)
         button1.pack(side=tk.LEFT)
@@ -212,13 +225,12 @@ class Presense(tk.Frame):
                             bd=0, compound=tk.TOP, image=controller.add_img2)
         button2.pack(side=tk.LEFT)
 
-        button3 = tk.Button(bottomframe, bd=0,state=DISABLED, compound=tk.TOP, image=controller.add_img3)
+        button3 = tk.Button(bottomframe, bd=0, state=DISABLED, compound=tk.TOP, image=controller.add_img3)
         button3.pack(side=tk.LEFT)
 
         self.datato = {'date': "2019-5-4"}
         self.datafrom = {'date': "2019-5-2"}
         self.parent = parent
-
         self.to_btn = tk.Button(bottomframe, text='ᐁ', command=lambda: self.popup(1), bg='white')
         self.to_btn.pack(side=tk.RIGHT, fill=tk.Y)
 
@@ -230,10 +242,42 @@ class Presense(tk.Frame):
 
         self.from_date = Label(bottomframe, text=self.datafrom['date'], bd=2, bg='white')
         self.from_date.pack(side=tk.RIGHT, fill=tk.Y)
+        self.top = tk.Frame(self, parent, bg='#76C019')
+        self.middle = tk.Frame(self, parent)
+        self.bot = tk.Frame(self, parent)
+        self.top.pack(side=TOP, fill=tk.X)
+        self.middle.pack()
+        self.bot.pack(side=BOTTOM)
 
-        fig, ax = plt.subplots(figsize=(6, 3), subplot_kw=dict(aspect="equal"))
-        self.canvas = FigureCanvasTkAgg(fig, self)
-        self.print()
+        # self.peak_hour1 = Label(self.top, text='Peak hour today:', font=("Bookman", 20),
+        #                         bg='#3c8081')
+        # self.peak_hour2 = Label(self.top, text=str(ApiProcess.get_peak()) + ':00', font=("Bookman", 25),
+        #                         fg='#FFA505', bg='#3c8081')
+        # self.peak_hour1.pack(side=LEFT, fill=tk.Y)
+        # self.peak_hour2.pack(side=LEFT)
+        #
+        # self.count_visitors1 = Label(self.top, text='   Count of visitors today:', font=("Bookman", 20),
+        #                              bg='#3c8081')
+        # self.count_visitors2 = Label(self.top, text=str(ApiProcess.get_today_visitors()), font=("Bookman", 25),
+        #                              fg='#FFA505', bg='#3c8081')
+        # self.count_visitors1.pack(side=LEFT, fill=tk.Y)
+        # self.count_visitors2.pack(side=LEFT)
+        #
+        # self.count_yes_visitors1 = Label(self.top, text='   Count of visitors yesterday:', font=("Bookman", 20),
+        #                                  bg='#3c8081')
+        # self.count__yes_visitors2 = Label(self.top, text=str(ApiProcess.get_today_visitors()), font=("Bookman", 25),
+        #                                   fg='#FFA505', bg='#3c8081')
+        # self.count_yes_visitors1.pack(side=LEFT, fill=tk.Y)
+        # self.count__yes_visitors2.pack(side=LEFT)
+
+        # fig, ax = plt.subplots(figsize=(6, 3), subplot_kw=dict(aspect="equal"))
+        # self.canvas_dwell = FigureCanvasTkAgg(fig, self.middle)
+        # self.canvas_repeat = FigureCanvasTkAgg(fig, self.middle)
+        # self.make_peak_hour()
+        Analytics.connected_visitors(self.from_date, self.to_date, self.middle)
+        Analytics.repeat_visitors(self.from_date, self.to_date, self.middle)
+        # Analytics.correlation_day_students()
+
 
     def popup(self, sw):
         child = tk.Toplevel()
@@ -243,37 +287,6 @@ class Presense(tk.Frame):
         else:
             cal = calendar_code.calen(child, self.datafrom, self, sw)
 
-    def print(self):
-
-        data = ApiProcess.get_presence(self.from_date['text'], self.to_date['text'])
-        fig, ax = plt.subplots(figsize=(8, 6), subplot_kw=dict(aspect="equal"))
-
-        recipe = [str(data['FIVE_TO_THIRTY_MINUTES']) + " 5-30minutes",
-                  str(data['THIRTY_TO_SIXTY_MINUTES']) + " 30-60minutes",
-                  str(data['ONE_TO_FIVE_HOURS']) + " 1-5hours",
-                  str(data['FIVE_TO_EIGHT_HOURS']) + " 5-8hours",
-                  str(data['EIGHT_PLUS_HOURS']) + " 8+hours"]
-
-        dat = [float(x.split()[0]) for x in recipe]
-        ingredients = [x.split()[-1] for x in recipe]
-
-        def func(pct, allvals):
-            absolute = int(pct / 100. * np.sum(allvals))
-            return "{:d}".format(absolute)
-
-        wedges, texts, autotexts = ax.pie(dat, autopct=lambda pct: func(pct, dat),
-                                          textprops=dict(color="w"))
-
-        ax.legend(wedges, ingredients,
-                  loc="center left",
-                  bbox_to_anchor=(1, 0, 0.5, 1))
-
-        plt.setp(autotexts, size=8, weight="bold")
-
-        ax.set_title("Presence: Connected Visitors Dwell Time")
-        self.canvas._tkcanvas.pack_forget()
-        self.canvas = FigureCanvasTkAgg(fig, self)
-        self.canvas._tkcanvas.pack(anchor=SW)
 
 
 def close_window():
@@ -325,6 +338,9 @@ if __name__ == "__main__":
     app.protocol("WM_DELETE_WINDOW", close_window)
     app.bind('<Escape>', lambda e: close_window())
 
+    # print(type(date.today()))
+    # print(calendar.day_name[date.today().weekday()])
+    # print(datetime.now() - timedelta(days=7))
     mapi = app.frames[Map]
     mapi.parse()
 
