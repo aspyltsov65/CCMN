@@ -242,13 +242,41 @@ class Presense(tk.Frame):
 
         self.from_date = Label(bottomframe, text=self.datafrom['date'], bd=2, bg='white')
         self.from_date.pack(side=tk.RIGHT, fill=tk.Y)
-        self.top = tk.Frame(self, parent, bg='#76C019')
+        self.top = tk.Frame(self, parent, bg='#EAEFEB')
         self.middle = tk.Frame(self, parent)
         self.bot = tk.Frame(self, parent)
         self.top.pack(side=TOP, fill=tk.X)
         self.middle.pack()
         self.bot.pack(side=BOTTOM)
 
+        self.lstBox = Listbox(self.top, width=28, height=3, bg="#99D79C", font=("Avenir", 18))
+        self.lstBox.insert(1, "Visitors")
+        self.lstBox.insert(2, "Unique visitors")
+        self.lstBox.insert(3, "Total visitors")
+        # self.lstBox.insert(4, "Percentage of \n\r Connected Visitors")
+
+        def show_listbox(event):
+            self.lstBox.grid()
+
+        def hide_listbox(event):
+            self.lstBox.grid_forget()
+
+        lb = Label(self.top, text='Total Visitors', relief=RAISED, bg="#3CC144", font=("Avenir", 30))
+        lb.bind('<Button-1>', show_listbox)
+        lb.bind('<Leave>', hide_listbox)
+        lb.grid(row=0, column=0, ipadx=50, ipady=10, padx=10, pady=10)
+
+        # but.place(x=0, y=0, )
+
+        lb = Label(master=self.top, text='Average Dwell Time', relief=RAISED, bg='#B94444', font=("Avenir", 30))
+        lb.grid(row=0, column=1, ipadx=50, ipady=10, padx=10, pady=10)
+
+        lb = Label(master=self.top, text='Peak Hour', relief=RAISED, bg='#22CCD7', font=("Avenir", 30))
+        lb.grid(row=0, column=2, ipadx=50, ipady=10, padx=10, pady=10)
+
+        lb = Label(master=self.top, text='Top Device Maker', relief=RAISED, bg='#FFC300', font=("Avenir", 30))
+        lb.grid(row=0, column=3, ipadx=50, ipady=10, padx=10, pady=10)
+        # lb.pack(side='left')
         # self.peak_hour1 = Label(self.top, text='Peak hour today:', font=("Bookman", 20),
         #                         bg='#3c8081')
         # self.peak_hour2 = Label(self.top, text=str(ApiProcess.get_peak()) + ':00', font=("Bookman", 25),
@@ -339,6 +367,9 @@ if __name__ == "__main__":
     app.bind('<Escape>', lambda e: close_window())
 
     # print(type(date.today()))
+    my_date = '2019-05-06'
+    dat = datetime.strptime(my_date, '%Y-%m-%d')
+    print(type(dat))
     # print(calendar.day_name[date.today().weekday()])
     # print(datetime.now() - timedelta(days=7))
     mapi = app.frames[Map]

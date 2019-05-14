@@ -1,8 +1,8 @@
+
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-
 
 username = 'RO'
 password_1 = 'just4reading'
@@ -27,7 +27,8 @@ presenceSession.verify = False
 def get_active():
     """Login to cisco-cmx.unit.ua, create request, get data from API"""
 
-    return localSession.get(local_host + query_active).json()
+    response = localSession.get(local_host + query_active)
+    return response.json()
 
 
 def get_presence(from_date, to_date):
