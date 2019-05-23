@@ -11,6 +11,7 @@ from tkinter import messagebox
 import Analytics
 import calendar_code
 import ApiProcess
+import TopMenuBar
 
 import calendar
 import PIL.ImageTk
@@ -242,41 +243,22 @@ class Presense(tk.Frame):
 
         self.from_date = Label(bottomframe, text=self.datafrom['date'], bd=2, bg='white')
         self.from_date.pack(side=tk.RIGHT, fill=tk.Y)
+
         self.top = tk.Frame(self, parent, bg='#EAEFEB')
+
         self.middle = tk.Frame(self, parent)
         self.bot = tk.Frame(self, parent)
         self.top.pack(side=TOP, fill=tk.X)
         self.middle.pack()
         self.bot.pack(side=BOTTOM)
+        self.create_top_menu_bar()
 
-        self.lstBox = Listbox(self.top, width=28, height=3, bg="#99D79C", font=("Avenir", 18))
-        self.lstBox.insert(1, "Visitors")
-        self.lstBox.insert(2, "Unique visitors")
-        self.lstBox.insert(3, "Total visitors")
-        # self.lstBox.insert(4, "Percentage of \n\r Connected Visitors")
+    def create_top_menu_bar(self):
+        TopMenuBar.total_visitors_button(top_frame=self.top)
+        TopMenuBar.average_dwell_time_button(top_frame=self.top)
+        TopMenuBar.peak_hour_button(top_frame=self.top)
+        TopMenuBar.top_device_button(top_frame=self.top)
 
-        def show_listbox(event):
-            self.lstBox.grid()
-
-        def hide_listbox(event):
-            self.lstBox.grid_forget()
-
-        lb = Label(self.top, text='Total Visitors', relief=RAISED, bg="#3CC144", font=("Avenir", 30))
-        lb.bind('<Button-1>', show_listbox)
-        lb.bind('<Leave>', hide_listbox)
-        lb.grid(row=0, column=0, ipadx=50, ipady=10, padx=10, pady=10)
-
-        # but.place(x=0, y=0, )
-
-        lb = Label(master=self.top, text='Average Dwell Time', relief=RAISED, bg='#B94444', font=("Avenir", 30))
-        lb.grid(row=0, column=1, ipadx=50, ipady=10, padx=10, pady=10)
-
-        lb = Label(master=self.top, text='Peak Hour', relief=RAISED, bg='#22CCD7', font=("Avenir", 30))
-        lb.grid(row=0, column=2, ipadx=50, ipady=10, padx=10, pady=10)
-
-        lb = Label(master=self.top, text='Top Device Maker', relief=RAISED, bg='#FFC300', font=("Avenir", 30))
-        lb.grid(row=0, column=3, ipadx=50, ipady=10, padx=10, pady=10)
-        # lb.pack(side='left')
         # self.peak_hour1 = Label(self.top, text='Peak hour today:', font=("Bookman", 20),
         #                         bg='#3c8081')
         # self.peak_hour2 = Label(self.top, text=str(ApiProcess.get_peak()) + ':00', font=("Bookman", 25),
@@ -306,7 +288,6 @@ class Presense(tk.Frame):
         Analytics.repeat_visitors(self.from_date, self.to_date, self.middle)
         # Analytics.correlation_day_students()
 
-
     def popup(self, sw):
         child = tk.Toplevel()
         child.geometry("255x310+1845+170")
@@ -314,7 +295,6 @@ class Presense(tk.Frame):
             cal = calendar_code.calen(child, self.datato, self, sw)
         else:
             cal = calendar_code.calen(child, self.datafrom, self, sw)
-
 
 
 def close_window():

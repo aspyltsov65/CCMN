@@ -26,7 +26,6 @@ presenceSession.verify = False
 
 def get_active():
     """Login to cisco-cmx.unit.ua, create request, get data from API"""
-
     response = localSession.get(local_host + query_active)
     return response.json()
 
