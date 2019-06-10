@@ -102,5 +102,4 @@ class calen:
             self.page.from_date['text'] = str(self.values['year_selected']) + '-' + str(
                 self.values['month_selected']) + '-' + str(self.values['day_selected'])
 
-        self.page.print()
-
+        self.page.presence()

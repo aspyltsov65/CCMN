@@ -14,8 +14,7 @@ import ApiProcess
 import TopMenuBar
 
 import calendar
-import PIL.ImageTk
-import PIL.Image
+
 from datetime import datetime, timedelta, date
 
 
@@ -40,7 +39,7 @@ class SeaofBTCapp(tk.Tk):
             frame = F(container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
-        self.show_frame(StartPage)
+        self.show_frame(Map)
         globals()
 
     def show_frame(self, cont):
@@ -54,7 +53,7 @@ class StartPage(tk.Frame):
         tk.Frame.__init__(self, parent)
         self["bg"] = "#DCDCDC"
         bottomframe = tk.Frame(self, parent)
-        bottomframe["bg"] = '#3c8081'
+        bottomframe["bg"] = '#FFFFFF'
         bottomframe.pack(side=tk.TOP, fill=tk.X)
 
         button1 = tk.Button(bottomframe, bd=0, state=DISABLED, compound=tk.TOP, image=controller.add_img1)
@@ -72,9 +71,9 @@ class StartPage(tk.Frame):
 class Map(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
-        self["bg"] = "#DCDCDC"
+        self["bg"] = "#FFFFFF"
         bottomframe = tk.Frame(self, parent)
-        bottomframe["bg"] = '#DCDCDC'
+        bottomframe["bg"] = '#FFFFFF'
         bottomframe.pack(side=tk.TOP, fill=tk.X)
 
         button1 = tk.Button(bottomframe, command=lambda: controller.show_frame(StartPage),
@@ -88,11 +87,23 @@ class Map(tk.Frame):
                             bd=0, compound=tk.TOP, image=controller.add_img3)
         button3.pack(side=tk.LEFT)
 
+        self.img = plt.imread("Perks/e1.png")
         self.leftpanel = tk.Frame(self, parent)
         self.leftpanel["bg"] = 'white'
         self.leftpanel.pack(side=LEFT, fill=tk.Y)
         self.ment = StringVar()
         self.leftpanel_switch = tk.Frame(self.leftpanel)
+        self.rightpanel_box = tk.Frame(self, parent)
+        self.rightpanel_box.pack(side=TOP)
+
+        self.rightbox_message = dict()
+        self.rightbox_message[0] = Label(self.rightpanel_box, justify=LEFT, font="Arial 16", fg='dimgray')
+        self.rightbox_message[1] = Label(self.rightpanel_box, justify=LEFT, font="Arial 16", fg='darkgray')
+        self.rightbox_message[2] = Label(self.rightpanel_box, justify=LEFT, font="Arial 16", fg='gray')
+        self.rightbox_message[0].pack(side=LEFT)
+        self.rightbox_message[1].pack(side=LEFT)
+        self.rightbox_message[2].pack(side=LEFT)
+
         self.leftpanel_switch.pack(side=TOP)
 
         self.floor_switch = 1
@@ -128,14 +139,13 @@ class Map(tk.Frame):
         self.f = Figure(figsize=(5, 5), dpi=100)
         self.canvas = FigureCanvasTkAgg(self.f, self)
         self.cur_selection = None
-        self.onfloor_total = Label(self, justify=LEFT, font="Arial 16", fg="#bc5151",anchor=S)
+        self.onfloor_total = Label(self, justify=LEFT, font="Arial 16", fg="#bc5151", anchor=S)
+
 
     def parse(self):
         globals()
         self.f = Figure(figsize=(5, 5), dpi=100)
         self.a = self.f.add_subplot(111, title="")
-        self.img = plt.imread("Perks/e1.png")
-
         self.f.gca().axes.get_yaxis().set_visible(False)
         self.f.gca().axes.get_xaxis().set_visible(False)
         self.a.imshow(self.img, extent=[0, 1550, 770, 0])
@@ -154,7 +164,6 @@ class Map(tk.Frame):
             if self.listbox.curselection() and (
                     mac['macAddress'] in str(self.listbox.get((self.listbox.curselection())))
                     or (mac['userName'] in str(self.listbox.get(self.listbox.curselection())) and mac['userName'])):
-
                 self.a.plot(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], 'ro', markersize=8)
                 self.a.text(mac['mapCoordinate']['x'], mac['mapCoordinate']['y'], mac['userName'], fontsize=8)
                 list.insert(END, mac['macAddress'] + ' \t' + mac['userName'])
@@ -174,14 +183,20 @@ class Map(tk.Frame):
                 self.connected += mac['macAddress']
 
                 if " " in self.connected and '1' in mac['mapInfo']['mapHierarchyString']:
-                    messagebox.showinfo("Notification",
-                                        mac['macAddress'] + " " + mac['userName'] + " now is on the first floor")
+                    self.rightbox_message[2]['text'] = self.rightbox_message[1]['text']
+                    self.rightbox_message[1]['text'] = self.rightbox_message[0]['text']
+                    self.rightbox_message[0]['text'] = mac['macAddress'] + " " + mac[
+                        'userName'] + " now is on the first floor"
                 elif " " in self.connected and '2' in mac['mapInfo']['mapHierarchyString']:
-                    messagebox.showinfo("Notification",
-                                        mac['macAddress'] + " " + mac['userName'] + " now is on the second floor")
+                    self.rightbox_message[2]['text'] = self.rightbox_message[1]['text']
+                    self.rightbox_message[1]['text'] = self.rightbox_message[0]['text']
+                    self.rightbox_message[0]['text'] = mac['macAddress'] + " " + mac[
+                        'userName'] + " now is on the second floor"
                 elif " " in self.connected and '3' in mac['mapInfo']['mapHierarchyString']:
-                    messagebox.showinfo("Notification",
-                                        mac['macAddress'] + " " + mac['userName'] + " now is on the third floor")
+                    self.rightbox_message[2]['text'] = self.rightbox_message[1]['text']
+                    self.rightbox_message[1]['text'] = self.rightbox_message[0]['text']
+                    self.rightbox_message[0]['text'] = mac['macAddress'] + " " + mac[
+                        'userName'] + " now is on the third floor"
         self.connected += " "
         onfloor_total['text'] = "On floor: " + str(onfloor) + "/ total: " + str(total)
         self.onfloor_total.pack_forget()
@@ -251,7 +266,11 @@ class Presense(tk.Frame):
         self.top.pack(side=TOP, fill=tk.X)
         self.middle.pack()
         self.bot.pack(side=BOTTOM)
+        fig, ax = plt.subplots(figsize=(6, 3), subplot_kw=dict(aspect="equal"))
+        self.canvas_dwell = FigureCanvasTkAgg(fig, self.middle)
+        self.canvas_repeat = FigureCanvasTkAgg(fig, self.middle)
         self.create_top_menu_bar()
+        self.presence()
 
     def create_top_menu_bar(self):
         TopMenuBar.total_visitors_button(top_frame=self.top)
@@ -259,6 +278,7 @@ class Presense(tk.Frame):
         TopMenuBar.peak_hour_button(top_frame=self.top)
         TopMenuBar.top_device_button(top_frame=self.top)
 
+    def presence(self):
         # self.peak_hour1 = Label(self.top, text='Peak hour today:', font=("Bookman", 20),
         #                         bg='#3c8081')
         # self.peak_hour2 = Label(self.top, text=str(ApiProcess.get_peak()) + ':00', font=("Bookman", 25),
@@ -284,8 +304,8 @@ class Presense(tk.Frame):
         # self.canvas_dwell = FigureCanvasTkAgg(fig, self.middle)
         # self.canvas_repeat = FigureCanvasTkAgg(fig, self.middle)
         # self.make_peak_hour()
-        Analytics.connected_visitors(self.from_date, self.to_date, self.middle)
-        Analytics.repeat_visitors(self.from_date, self.to_date, self.middle)
+        Analytics.connected_visitors(self)
+        Analytics.repeat_visitors(self)
         # Analytics.correlation_day_students()
 
     def popup(self, sw):
@@ -346,7 +366,7 @@ if __name__ == "__main__":
     app.protocol("WM_DELETE_WINDOW", close_window)
     app.bind('<Escape>', lambda e: close_window())
 
-    # print(type(date.today()))
+    print(ApiProcess.get_today_visitors())
     my_date = '2019-05-06'
     dat = datetime.strptime(my_date, '%Y-%m-%d')
     print(type(dat))

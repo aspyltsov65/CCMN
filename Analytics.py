@@ -39,9 +39,6 @@ import start
 #
 # # self.peak.pack(side=TOP)
 #
-def put_dwell(middle_frame, figure, direction):
-    canvas_repeat = FigureCanvasTkAgg(figure, middle_frame)
-    canvas_repeat._tkcanvas.pack(side=direction)
 
 
 def func(pct, allvals):
@@ -49,8 +46,9 @@ def func(pct, allvals):
     return "{:d}".format(absolute)
 
 
-def connected_visitors(from_date, to_date, middle_frame):
-    data = ApiProcess.get_presence(from_date['text'], to_date['text'])
+def connected_visitors(page):
+
+    data = ApiProcess.get_presence(page.from_date['text'], page.to_date['text'])
 
     fig, ax = plt.subplots(figsize=(8, 6), subplot_kw=dict(aspect="equal"), dpi=100)
 
@@ -73,11 +71,14 @@ def connected_visitors(from_date, to_date, middle_frame):
 
     ax.set_title("Connected Visitors Dwell Time:")
     fig.set_facecolor('#FFFFFF')
-    put_dwell(middle_frame, fig, 'right')
+
+    page.canvas_dwell._tkcanvas.pack_forget()
+    page.canvas_dwell = FigureCanvasTkAgg(fig, page.middle)
+    page.canvas_dwell._tkcanvas.pack(side=LEFT)
 
 
-def repeat_visitors(from_date, to_date, middle_frame):
-    data = ApiProcess.get_repeat_visitors(from_date['text'], to_date['text'])
+def repeat_visitors(page):
+    data = ApiProcess.get_repeat_visitors(page.from_date['text'], page.to_date['text'])
 
     fig, ax = plt.subplots(figsize=(8, 6), subplot_kw=dict(aspect="equal"), dpi=100)
 
@@ -101,7 +102,11 @@ def repeat_visitors(from_date, to_date, middle_frame):
 
     ax.set_title("Repeat visitors:")
     fig.set_facecolor('#FFFFFF')
-    put_dwell(middle_frame, fig, 'left')
+
+    page.canvas_repeat._tkcanvas.pack_forget()
+    page.canvas_repeat = FigureCanvasTkAgg(fig, page.middle)
+    page.canvas_repeat._tkcanvas.pack(side=RIGHT)
+
 
 
 def correlation_day_students():
