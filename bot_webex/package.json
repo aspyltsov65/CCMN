@@ -14,7 +14,7 @@
   "author": "Stève Sfartz (Cisco DevNet) <stsfartz@cisco.com>",
   "license": "MIT",
   "dependencies": {
-    "axios": "^0.18.0",
+    "axios": "^0.21.1",
     "botkit": "^0.7.0",
     "canvas": "^2.4.1",
     "jimp": "^0.6.4",
